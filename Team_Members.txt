@@ -1,5 +1,5 @@
 Name: Abdulrahman mohamed | ID: 20230213 | Role:
-Name: | ID: | Role:
+Name: Nourhan Mohammed | ID: 20230560 | Role: Header.php, footer.php, css styling for both
 Name: | ID: | Role:
 Name: | ID: | Role:
 Name: | ID: | Role:
