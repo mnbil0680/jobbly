@@ -212,9 +212,33 @@ function escapeHtml(text) {
 }
 
 /**
+ * Show jobs page
+ */
+function showJobsPage() {
+    console.log('Showing jobs page...');
+    
+    // Hide all other containers
+    document.getElementById('testEndpointsContainer').style.display = 'none';
+    document.getElementById('testDetailsContainer').style.display = 'none';
+    
+    // Show jobs page
+    const jobsPage = document.getElementById('jobsPage');
+    if (jobsPage) {
+        jobsPage.style.display = 'block';
+    }
+    
+    // Load jobs
+    loadJobs();
+}
+
+/**
  * Load a page (for future navigation)
  */
 function loadPage(page) {
     console.log('Loading page:', page);
+    
+    if (page === 'jobs') {
+        showJobsPage();
+    }
     // Placeholder for future multi-page navigation
 }

@@ -14,7 +14,8 @@
         </div>
         <nav class="nav">
             <ul>
-                <li><a href="#" onclick="loadPage('jobs')">Jobs</a></li>
+                <li><a href="#" onclick="showJobsPage()">Jobs</a></li>
+                <li><a href="#" onclick="showTestEndpoints()">Test Endpoints</a></li>
                 <li><a href="#" onclick="loadPage('about')">About</a></li>
                 <li><a href="../src/fetch_sources.php" target="_blank">API Endpoint</a></li>
             </ul>
