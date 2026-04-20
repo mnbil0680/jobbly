@@ -6,7 +6,7 @@
 // ** - Handle errors and show user-friendly messages**
 // **================================================**
 
-const API_BASE_URL = '../../API_Ops.php';
+const API_BASE_URL = 'API_Ops.php';
 
 /**
  * Fetch all jobs from the API
