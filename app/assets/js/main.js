@@ -12,6 +12,7 @@ let currentEditId = null;
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, calling loadJobs()');
     loadJobs();
 });
 
@@ -22,7 +23,9 @@ async function loadJobs() {
     const jobsContainer = document.getElementById('jobsContainer');
     jobsContainer.innerHTML = '<p class="loading">Loading jobs...</p>';
     
+    console.log('Fetching jobs from API...');
     const jobs = await fetchJobs();
+    console.log('Jobs received:', jobs);
     
     if (jobs.length === 0) {
         jobsContainer.innerHTML = `
