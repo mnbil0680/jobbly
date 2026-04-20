@@ -53,12 +53,12 @@ echo ║   Services Started Successfully!               ║
 echo ╚════════════════════════════════════════════════╝
 echo.
 echo You can now access:
-echo   Web:  http://localhost/jobbly
-echo   API:  http://localhost/jobbly/fetch_sources.php
+echo   Web:  http://localhost/jobbly/app
+echo   API:  http://localhost/jobbly/src/fetch_sources.php
 echo.
 echo Or run from terminal:
 echo   cd C:\xampp\htdocs\jobbly
-echo   php fetch_sources_cli.php
+echo   php src/fetch_sources_cli.php
 echo.
 echo To stop services later, use:
 echo   httpd -k stop  (Apache)

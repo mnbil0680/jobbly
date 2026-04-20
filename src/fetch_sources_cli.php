@@ -10,11 +10,11 @@
 // **================================================**
 
 // Load configuration
-if (!file_exists(__DIR__ . '/config.php')) {
+if (!file_exists(__DIR__ . '/../config/config.php')) {
     error_log("ERROR: config.php not found. Please create it from config.example.php");
     exit(1);
 }
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/SourceFetcher.php';
 
 // Color codes for terminal

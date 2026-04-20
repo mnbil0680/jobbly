@@ -31,20 +31,21 @@ if (version_compare($php_version, '7.0.0') >= 0) {
 // Check 2: Required Files
 echo "\nChecking required files...";
 $required_files = [
-    'config.php',
-    'config.example.php',
-    'SourceFetcher.php',
-    'fetch_sources.php',
-    'fetch_sources_cli.php',
-    'job_sources.json',
-    'index.php',
-    'DB_Ops.php',
-    'API_Ops.php'
+    'config/config.php',
+    'config/config.example.php',
+    'src/SourceFetcher.php',
+    'src/fetch_sources.php',
+    'src/fetch_sources_cli.php',
+    'src/job_sources.json',
+    'app/index.php',
+    'app/DB_Ops.php',
+    'app/API_Ops.php'
 ];
 
 $missing = [];
+$base_dir = dirname(__DIR__); // Get parent directory
 foreach ($required_files as $file) {
-    if (!file_exists(__DIR__ . '/' . $file)) {
+    if (!file_exists($base_dir . '/' . $file)) {
         $missing[] = $file;
     }
 }
@@ -62,15 +63,16 @@ if (empty($missing)) {
 
 // Check 3: config.php Exists
 echo "\nChecking config.php...";
-if (file_exists(__DIR__ . '/config.php')) {
+$base_dir = dirname(__DIR__);
+if (file_exists($base_dir . '/config/config.php')) {
     echo " ✓ OK\n";
     echo "  config.php exists\n";
     $checks[] = ['config.php', 'OK', 'Found'];
 } else {
     echo " ⚠ WARNING\n";
     echo "  config.php not found. Creating from template...\n";
-    if (file_exists(__DIR__ . '/config.example.php')) {
-        copy(__DIR__ . '/config.example.php', __DIR__ . '/config.php');
+    if (file_exists($base_dir . '/config/config.example.php')) {
+        copy($base_dir . '/config/config.example.php', $base_dir . '/config/config.php');
         echo "  Created config.php from config.example.php\n";
         $checks[] = ['config.php', 'CREATED', 'New file'];
     } else {
@@ -82,8 +84,8 @@ if (file_exists(__DIR__ . '/config.php')) {
 
 // Check 4: job_sources.json
 echo "\nChecking job_sources.json...";
-if (file_exists(__DIR__ . '/job_sources.json')) {
-    $json = json_decode(file_get_contents(__DIR__ . '/job_sources.json'), true);
+if (file_exists($base_dir . '/src/job_sources.json')) {
+    $json = json_decode(file_get_contents($base_dir . '/src/job_sources.json'), true);
     if ($json && is_array($json)) {
         echo " ✓ OK\n";
         echo "  Valid JSON with " . count($json) . " sources\n";
@@ -103,8 +105,8 @@ if (file_exists(__DIR__ . '/job_sources.json')) {
 
 // Check 5: SourceFetcher Class
 echo "\nChecking SourceFetcher class...";
-if (file_exists(__DIR__ . '/SourceFetcher.php')) {
-    require_once __DIR__ . '/SourceFetcher.php';
+if (file_exists($base_dir . '/src/SourceFetcher.php')) {
+    require_once $base_dir . '/src/SourceFetcher.php';
     if (class_exists('SourceFetcher')) {
         echo " ✓ OK\n";
         echo "  SourceFetcher class loaded successfully\n";
@@ -190,14 +192,14 @@ if ($all_pass) {
     echo "\033[32m✓ All checks passed! Your project is ready.\033[0m\n\n";
     echo "Next steps:\n";
     echo "  1. Start XAMPP (Apache + MySQL)\n";
-    echo "  2. Run: php fetch_sources_cli.php\n";
-    echo "  3. Open: http://localhost/jobbly\n";
+    echo "  2. Run: php src/fetch_sources_cli.php\n";
+    echo "  3. Open: http://localhost/jobbly/app\n";
     exit(0);
 } else {
     echo "\033[31m✗ Some checks failed. Please fix the issues above.\033[0m\n\n";
     echo "For help, see:\n";
-    echo "  - RUN_AND_TEST.md (setup and testing guide)\n";
-    echo "  - QUICK_START.md (quick setup)\n";
+    echo "  - docs/RUN_AND_TEST.md (setup and testing guide)\n";
+    echo "  - docs/QUICK_START.md (quick setup)\n";
     exit(1);
 }
 ?>

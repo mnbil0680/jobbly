@@ -55,12 +55,12 @@ Write-Host "║   Services Started Successfully!               ║" -ForegroundC
 Write-Host "╚════════════════════════════════════════════════╝" -ForegroundColor Green
 Write-Host ""
 Write-Host "You can now access:" -ForegroundColor Cyan
-Write-Host "  Web:  http://localhost/jobbly" -ForegroundColor White
-Write-Host "  API:  http://localhost/jobbly/fetch_sources.php" -ForegroundColor White
+Write-Host "  Web:  http://localhost/jobbly/app" -ForegroundColor White
+Write-Host "  API:  http://localhost/jobbly/src/fetch_sources.php" -ForegroundColor White
 Write-Host ""
 Write-Host "Or run from terminal:" -ForegroundColor Cyan
 Write-Host "  cd C:\xampp\htdocs\jobbly" -ForegroundColor White
-Write-Host "  php fetch_sources_cli.php" -ForegroundColor White
+Write-Host "  php src/fetch_sources_cli.php" -ForegroundColor White
 Write-Host ""
 Write-Host "To stop services later:" -ForegroundColor Cyan
 Write-Host "  httpd -k stop  (Apache)" -ForegroundColor White
@@ -68,9 +68,9 @@ Write-Host "  mysqladmin shutdown  (MySQL)" -ForegroundColor White
 Write-Host ""
 
 # Ask if user wants to open browser
-$response = Read-Host "Would you like to open http://localhost/jobbly in your browser? (y/n)"
+$response = Read-Host "Would you like to open http://localhost/jobbly/app in your browser? (y/n)"
 if ($response -eq 'y' -or $response -eq 'Y') {
-    Start-Process "http://localhost/jobbly"
+    Start-Process "http://localhost/jobbly/app"
 }
 
 Read-Host "Press Enter to exit"

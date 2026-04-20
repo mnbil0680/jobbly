@@ -9,11 +9,11 @@
 // **================================================**
 
 // Load configuration
-if (!file_exists(__DIR__ . '/config.php')) {
+if (!file_exists(__DIR__ . '/../config/config.php')) {
     http_response_code(500);
     die(json_encode(['error' => 'config.php not found. Please run setup first.']));
 }
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/SourceFetcher.php';
 
 // Set JSON response header
