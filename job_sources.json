@@ -1,0 +1,409 @@
+[
+  {
+    "id": "remotive",
+    "name": "Remotive",
+    "type": "json_api",
+    "endpoint": "https://remotive.com/api/remote-jobs",
+    "method": "GET",
+    "auth": "none",
+    "params": {
+      "limit": 100
+    },
+    "headers": {},
+    "timeout": 10,
+    "parser": "json_array",
+    "required_keys": [],
+    "enabled": true,
+    "description": "Remote worldwide",
+    "job_path": "jobs",
+    "job_id_field": "id",
+    "sample_fields": {
+      "title": "title",
+      "company": "company_name",
+      "location": "candidate_required_location",
+      "job_type": "job_type",
+      "apply_url": "url"
+    }
+  },
+  {
+    "id": "himalayas",
+    "name": "Himalayas",
+    "type": "json_api",
+    "endpoint": "https://himalayas.app/api/v1/jobs",
+    "method": "GET",
+    "auth": "none",
+    "params": {
+      "limit": 100
+    },
+    "headers": {},
+    "timeout": 10,
+    "parser": "json_array",
+    "required_keys": [],
+    "enabled": true,
+    "description": "Remote worldwide",
+    "job_path": "data",
+    "job_id_field": "id",
+    "sample_fields": {
+      "title": "title",
+      "company": "company_name",
+      "location": "location",
+      "job_type": "job_type",
+      "apply_url": "apply_url"
+    }
+  },
+  {
+    "id": "jobicy",
+    "name": "Jobicy",
+    "type": "json_api",
+    "endpoint": "https://jobicy.com/api/v2/remote-jobs",
+    "method": "GET",
+    "auth": "none",
+    "params": {
+      "count": 100
+    },
+    "headers": {},
+    "timeout": 10,
+    "parser": "json_array",
+    "required_keys": [],
+    "enabled": true,
+    "description": "Remote worldwide",
+    "job_path": "jobs",
+    "job_id_field": "id",
+    "sample_fields": {
+      "title": "jobTitle",
+      "company": "companyName",
+      "location": "jobLocation",
+      "job_type": "jobType",
+      "apply_url": "jobApplyLink"
+    }
+  },
+  {
+    "id": "remoteok",
+    "name": "RemoteOK",
+    "type": "json_api",
+    "endpoint": "https://remoteok.io/api",
+    "method": "GET",
+    "auth": "none",
+    "params": {},
+    "headers": {},
+    "timeout": 10,
+    "parser": "json_array",
+    "required_keys": [],
+    "enabled": true,
+    "description": "Remote worldwide",
+    "job_path": "",
+    "job_id_field": "id",
+    "sample_fields": {
+      "title": "title",
+      "company": "company",
+      "location": "location",
+      "job_type": "job_type",
+      "apply_url": "url"
+    }
+  },
+  {
+    "id": "arbeitnow",
+    "name": "Arbeitnow",
+    "type": "json_api",
+    "endpoint": "https://api.arbeitnow.com/api/v2/job-board-items",
+    "method": "GET",
+    "auth": "none",
+    "params": {},
+    "headers": {},
+    "timeout": 10,
+    "parser": "json_array",
+    "required_keys": [],
+    "enabled": true,
+    "description": "Europe + Remote",
+    "job_path": "data",
+    "job_id_field": "id",
+    "sample_fields": {
+      "title": "title",
+      "company": "company_name",
+      "location": "location",
+      "job_type": "job_type",
+      "apply_url": "url"
+    }
+  },
+  {
+    "id": "we_work_remotely",
+    "name": "We Work Remotely",
+    "type": "rss_feed",
+    "endpoint": "https://weworkremotely.com/categories/2/jobs.rss",
+    "method": "GET",
+    "auth": "none",
+    "params": {},
+    "headers": {},
+    "timeout": 10,
+    "parser": "rss",
+    "required_keys": [],
+    "enabled": true,
+    "description": "Remote worldwide",
+    "job_path": "",
+    "job_id_field": "link",
+    "sample_fields": {
+      "title": "title",
+      "company": "company (from title)",
+      "location": "location (from description)",
+      "apply_url": "link"
+    }
+  },
+  {
+    "id": "working_nomads",
+    "name": "Working Nomads",
+    "type": "json_api",
+    "endpoint": "https://www.workingnomads.com/api/jobs",
+    "method": "GET",
+    "auth": "none",
+    "params": {},
+    "headers": {},
+    "timeout": 10,
+    "parser": "json_array",
+    "required_keys": [],
+    "enabled": true,
+    "description": "Remote worldwide",
+    "job_path": "",
+    "job_id_field": "id",
+    "sample_fields": {
+      "title": "title",
+      "company": "company_name",
+      "location": "location",
+      "job_type": "job_type",
+      "apply_url": "url"
+    }
+  },
+  {
+    "id": "jsearch_rapidapi",
+    "name": "JSearch/RapidAPI",
+    "type": "json_api",
+    "endpoint": "https://jsearch.p.rapidapi.com/search",
+    "method": "GET",
+    "auth": "api_key_header",
+    "params": {
+      "query": "remote jobs",
+      "page": 1,
+      "num_pages": 1
+    },
+    "headers": {
+      "X-RapidAPI-Key": "RAPIDAPI_KEY",
+      "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
+    },
+    "timeout": 10,
+    "parser": "json_array",
+    "required_keys": ["RAPIDAPI_KEY"],
+    "enabled": true,
+    "description": "LinkedIn + Indeed + Glassdoor (Global + Egypt + Saudi)",
+    "job_path": "data",
+    "job_id_field": "job_id",
+    "sample_fields": {
+      "title": "job_title",
+      "company": "employer_name",
+      "location": "job_city",
+      "job_type": "job_employment_type",
+      "apply_url": "job_apply_link",
+      "salary_min": "job_min_salary",
+      "salary_max": "job_max_salary",
+      "currency": "job_salary_currency"
+    }
+  },
+  {
+    "id": "linkedin",
+    "name": "LinkedIn",
+    "type": "guest_api",
+    "endpoint": "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting",
+    "method": "GET",
+    "auth": "none",
+    "params": {
+      "keywords": "remote",
+      "location": "Remote",
+      "distance": 25,
+      "start": 0,
+      "count": 25
+    },
+    "headers": {},
+    "timeout": 10,
+    "parser": "json",
+    "required_keys": [],
+    "enabled": true,
+    "description": "Guest API (Egypt + Saudi + Remote worldwide)",
+    "job_path": "elements",
+    "job_id_field": "jobId",
+    "sample_fields": {
+      "title": "title",
+      "company": "companyName",
+      "location": "jobLocation",
+      "apply_url": "jobId"
+    }
+  },
+  {
+    "id": "adzuna",
+    "name": "Adzuna",
+    "type": "json_api",
+    "endpoint": "https://api.adzuna.com/v1/api/jobs/",
+    "method": "GET",
+    "auth": "api_key_param",
+    "params": {
+      "app_id": "ADZUNA_APP_ID",
+      "app_key": "ADZUNA_APP_KEY",
+      "results_per_page": 50
+    },
+    "headers": {},
+    "timeout": 10,
+    "parser": "json_array",
+    "required_keys": ["ADZUNA_APP_ID", "ADZUNA_APP_KEY"],
+    "enabled": true,
+    "description": "Multi-country",
+    "job_path": "results",
+    "job_id_field": "id",
+    "sample_fields": {
+      "title": "title",
+      "company": "company",
+      "location": "location",
+      "job_type": "contract_type",
+      "apply_url": "redirect_url",
+      "salary_min": "salary_min",
+      "salary_max": "salary_max",
+      "currency": "salary_currency_code"
+    }
+  },
+  {
+    "id": "the_muse",
+    "name": "The Muse",
+    "type": "json_api",
+    "endpoint": "https://www.themuse.com/api/public/jobs",
+    "method": "GET",
+    "auth": "none",
+    "params": {
+      "page": 0,
+      "per_page": 50
+    },
+    "headers": {},
+    "timeout": 10,
+    "parser": "json_array",
+    "required_keys": [],
+    "enabled": true,
+    "description": "Software Engineering",
+    "job_path": "results",
+    "job_id_field": "id",
+    "sample_fields": {
+      "title": "name",
+      "company": "company.name",
+      "location": "locations[0].name",
+      "job_type": "levels[0].name",
+      "apply_url": "refs.landing_page"
+    }
+  },
+  {
+    "id": "findwork",
+    "name": "Findwork.dev",
+    "type": "json_api",
+    "endpoint": "https://findwork.dev/api/jobs/",
+    "method": "GET",
+    "auth": "api_key_header",
+    "params": {
+      "limit": 50
+    },
+    "headers": {
+      "Authorization": "Token FINDWORK_API_KEY"
+    },
+    "timeout": 10,
+    "parser": "json_array",
+    "required_keys": ["FINDWORK_API_KEY"],
+    "enabled": true,
+    "description": "Software dev remote",
+    "job_path": "",
+    "job_id_field": "id",
+    "sample_fields": {
+      "title": "title",
+      "company": "company_name",
+      "location": "location",
+      "job_type": "job_type",
+      "apply_url": "apply_url"
+    }
+  },
+  {
+    "id": "jooble",
+    "name": "Jooble",
+    "type": "json_api",
+    "endpoint": "https://api.jooble.org/api/v2/search",
+    "method": "POST",
+    "auth": "api_key_body",
+    "params": {},
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "timeout": 10,
+    "parser": "json_array",
+    "required_keys": ["JOOBLE_API_KEY"],
+    "enabled": true,
+    "description": "Global (Egypt + Saudi + Remote)",
+    "job_path": "jobs",
+    "job_id_field": "id",
+    "sample_fields": {
+      "title": "title",
+      "company": "company",
+      "location": "location",
+      "job_type": "jobtype",
+      "apply_url": "link"
+    }
+  },
+  {
+    "id": "reed",
+    "name": "Reed.co.uk",
+    "type": "json_api",
+    "endpoint": "https://www.reed.co.uk/api/1.0/search",
+    "method": "GET",
+    "auth": "basic_auth",
+    "params": {
+      "keywords": "remote",
+      "resultsToTake": 50
+    },
+    "headers": {},
+    "timeout": 10,
+    "parser": "json_array",
+    "required_keys": ["REED_API_KEY"],
+    "enabled": true,
+    "description": "UK + Remote",
+    "job_path": "results",
+    "job_id_field": "jobId",
+    "sample_fields": {
+      "title": "jobTitle",
+      "company": "employerName",
+      "location": "locationName",
+      "job_type": "jobType",
+      "apply_url": "jobUrl",
+      "salary_min": "salaryMin",
+      "salary_max": "salaryMax"
+    }
+  },
+  {
+    "id": "usajobs",
+    "name": "USAJobs",
+    "type": "json_api",
+    "endpoint": "https://data.usajobs.gov/api/search",
+    "method": "GET",
+    "auth": "api_key_header",
+    "params": {
+      "keyword": "remote IT",
+      "ResultsPerPage": 50
+    },
+    "headers": {
+      "Authorization-Key": "USAJOBS_API_KEY",
+      "User-Agent": "Jobbly (contact@jobbly.app)"
+    },
+    "timeout": 10,
+    "parser": "json_array",
+    "required_keys": [],
+    "enabled": true,
+    "description": "US Gov remote IT",
+    "job_path": "SearchResult.SearchResultItems",
+    "job_id_field": "MatchedObjectId",
+    "sample_fields": {
+      "title": "PositionTitle",
+      "company": "OrganizationName",
+      "location": "PositionLocationDisplay",
+      "job_type": "EmploymentType",
+      "apply_url": "ApplyURI"
+    }
+  }
+]
