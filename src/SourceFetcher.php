@@ -271,12 +271,9 @@ class SourceFetcher {
         if ($source['id'] === 'jooble') {
             $data = [
                 'keywords' => 'remote',
-                'searchMode' => 'entire',
-                'baseUri' => 'https://jooble.org',
-                'pageNum' => 1,
-                'pageSize' => 50
+                'location' => 'remote',
+                'page' => 1
             ];
-            $data['apiKey'] = $this->config['JOOBLE_API_KEY'] ?? '';
             return json_encode($data);
         }
         return json_encode($source['params'] ?? []);
