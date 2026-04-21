@@ -15,26 +15,26 @@ let testRefreshInterval = null;
  */
 function showTestEndpoints() {
     console.log('=== showTestEndpoints() called ===');
-    
+
     // Hide all other containers
     const jobsContainer = document.getElementById('jobsContainer');
     const testDetailsContainer = document.getElementById('testDetailsContainer');
     const testEndpointsContainer = document.getElementById('testEndpointsContainer');
-    
+
     console.log('jobsContainer:', jobsContainer);
     console.log('testDetailsContainer:', testDetailsContainer);
     console.log('testEndpointsContainer:', testEndpointsContainer);
-    
+
     if (jobsContainer) {
         jobsContainer.style.display = 'none';
         console.log('Hidden jobsContainer');
     }
-    
+
     if (testDetailsContainer) {
         testDetailsContainer.style.display = 'none';
         console.log('Hidden testDetailsContainer');
     }
-    
+
     // Show test endpoints container
     if (testEndpointsContainer) {
         testEndpointsContainer.style.display = 'block';
@@ -43,7 +43,7 @@ function showTestEndpoints() {
         console.error('testEndpointsContainer not found!');
         return;
     }
-    
+
     // Load sources
     console.log('Calling loadAllSources()...');
     loadAllSources();
@@ -56,44 +56,44 @@ async function loadAllSources() {
     const sourcesGrid = document.getElementById('sourcesGrid');
     const loadingMsg = document.getElementById('loadingMessage');
     const errorMsg = document.getElementById('errorMessage');
-    
+
     // Show loading
     loadingMsg.style.display = 'block';
     sourcesGrid.innerHTML = '';
     errorMsg.style.display = 'none';
-    
+
     try {
         // Fetch all sources data
         const response = await fetch('/jobbly/src/test_source.php?all=true');
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         allSourcesData = data.results || [];
-        
+
         // Hide loading
         loadingMsg.style.display = 'none';
-        
+
         // Update summary stats
         updateSummaryStats(data);
-        
+
         // Display cards
         displaySourceCards(allSourcesData);
-        
+
         // Update last updated time
         updateLastUpdateTime();
-        
+
     } catch (error) {
         console.error('Error loading sources:', error);
         loadingMsg.style.display = 'none';
-        
+
         // Show error message
         errorMsg.style.display = 'block';
-        document.getElementById('errorText').textContent = 
+        document.getElementById('errorText').textContent =
             'Failed to load sources: ' + error.message;
-        
+
         // Create cards from job_sources.json anyway
         loadSourceDefinitions();
     }
@@ -106,10 +106,10 @@ async function loadSourceDefinitions() {
     try {
         const response = await fetch('/jobbly/src/job_sources.json');
         const sources = await response.json();
-        
+
         const sourcesGrid = document.getElementById('sourcesGrid');
         sourcesGrid.innerHTML = '';
-        
+
         sources.forEach(source => {
             if (source.enabled) {
                 const card = createSourceCard({
@@ -150,24 +150,49 @@ function displaySourceCards(sources) {
         console.error('sourcesGrid element not found!');
         return;
     }
-    
+
     // Clear existing content
     sourcesGrid.innerHTML = '';
-    
+
     console.log('=== Displaying', sources.length, 'source cards ===');
-    
+
     sources.forEach((testResult, index) => {
         const card = createSourceCard(testResult);
         // Add direct click handler to each card as well
-        card.onclick = function(e) {
+        card.onclick = function (e) {
             console.log('=== DIRECT CARD ONCLICK FIRED ===');
+            e.preventDefault();
             e.stopPropagation();
             showSourceDetails(testResult.source.id);
         };
+
+        // Keyboard accessibility (Enter / Space)
+        card.onkeydown = function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                showSourceDetails(testResult.source.id);
+            }
+        };
+
         sourcesGrid.appendChild(card);
         console.log(`Card ${index + 1}: ${testResult.source.name} (ID: ${testResult.source.id})`);
     });
-    
+
+    // Delegated click fallback in case direct handlers are overridden.
+    if (!gridClickListenerAdded) {
+        sourcesGrid.addEventListener('click', function (e) {
+            const card = e.target.closest('.source-card[data-source-id]');
+            if (!card) return;
+
+            const sourceId = card.getAttribute('data-source-id');
+            if (sourceId) {
+                console.log('=== GRID DELEGATED CLICK FIRED ===');
+                showSourceDetails(sourceId);
+            }
+        });
+        gridClickListenerAdded = true;
+    }
+
     console.log('All cards created and added to grid');
     console.log('Each card has onclick handler attached');
 }
@@ -180,25 +205,39 @@ function createSourceCard(testResult) {
     card.className = 'source-card';
     card.setAttribute('role', 'button');
     card.setAttribute('tabindex', '0');
-    
+
     const source = testResult.source;
     const status = testResult.status || 'pending';
     const hasErrors = testResult.errors && testResult.errors.has_errors;
-    
+
+    // Resolve state from actual payload first so cards remain clickable
+    // even when backend omits a top-level status field.
+    const hasParsingResult = !!(testResult.parsing && testResult.parsing.jobs_found !== undefined);
+    const isApiKeySkipped = !!(testResult.validation && testResult.validation.api_keys_valid === false);
+    const resolvedState = hasParsingResult
+        ? 'passed'
+        : hasErrors
+            ? 'failed'
+            : isApiKeySkipped
+                ? 'skipped'
+                : status;
+
     // Determine card styling
-    if (status === 'pending') {
+    if (resolvedState === 'pending') {
         card.classList.add('loading');
-    } else if (hasErrors) {
+    } else if (resolvedState === 'failed') {
         card.classList.add('failed');
+    } else if (resolvedState === 'skipped') {
+        card.classList.add('skipped');
     } else {
         card.classList.add('passed');
     }
-    
+
     // Build status icon and text
     let statusIcon = '⟳';
     let statusText = 'Testing...';
     let statusClass = '';
-    
+
     if (testResult.parsing && testResult.parsing.jobs_found !== undefined) {
         // Passed
         statusIcon = '✓';
@@ -215,7 +254,7 @@ function createSourceCard(testResult) {
         statusText = 'Skipped';
         statusClass = 'warning';
     }
-    
+
     // Build badges
     let badgesHTML = '';
     if (testResult.parsing && testResult.parsing.jobs_found !== undefined) {
@@ -225,7 +264,7 @@ function createSourceCard(testResult) {
             </div>
         `;
     }
-    
+
     if (testResult.metrics && testResult.metrics.total_time_ms) {
         badgesHTML += `
             <div class="badge badge-latency">
@@ -233,7 +272,7 @@ function createSourceCard(testResult) {
             </div>
         `;
     }
-    
+
     if (hasErrors && testResult.errors && testResult.errors.messages && testResult.errors.messages[0]) {
         badgesHTML += `
             <div class="badge badge-error">
@@ -241,7 +280,7 @@ function createSourceCard(testResult) {
             </div>
         `;
     }
-    
+
     card.innerHTML = `
         <div class="source-card-name">${escapeHtml(source.name)}</div>
         <div class="source-card-status">
@@ -252,13 +291,13 @@ function createSourceCard(testResult) {
             ${badgesHTML}
         </div>
     `;
-    
+
     // Add data attribute for event delegation
     card.setAttribute('data-source-id', source.id);
     card.setAttribute('data-source-name', source.name);
     card.title = `Click to view details for ${source.name}`;
     card.style.cursor = 'pointer';
-    
+
     return card;
 }
 
@@ -267,19 +306,44 @@ function createSourceCard(testResult) {
  */
 function updateSummaryStats(data) {
     const summary = data.summary || {};
-    
-    document.getElementById('passedCount').textContent = summary.ok || 0;
-    document.getElementById('failedCount').textContent = summary.failed || 0;
-    document.getElementById('skippedCount').textContent = summary.skipped || 0;
-    
+    const results = data.results || [];
+
+    // Prefer per-result aggregation because backend summary keys differ
+    // between fetch/test endpoints (ok/passed/skipped).
+    let failedCount = 0;
+    let skippedCount = 0;
+
+    if (results.length > 0) {
+        results.forEach(result => {
+            const hasErrors = !!(result.errors && result.errors.has_errors);
+            const isMissingKeys = !!(result.validation && result.validation.api_keys_valid === false);
+
+            if (hasErrors) {
+                failedCount++;
+            } else if (isMissingKeys) {
+                skippedCount++;
+            }
+        });
+    } else {
+        // Fallback to server summary keys for compatibility.
+        failedCount = summary.failed || 0;
+        skippedCount = summary.skipped || 0;
+    }
+
+    const workingCount = Math.max(0, (results.length > 0 ? results.length : (summary.ok || summary.passed || 0) + failedCount + skippedCount) - failedCount - skippedCount);
+
+    document.getElementById('passedCount').textContent = workingCount;
+    document.getElementById('failedCount').textContent = failedCount;
+    document.getElementById('skippedCount').textContent = skippedCount;
+
     // Calculate total jobs
     let totalJobs = 0;
-    (data.results || []).forEach(result => {
+    results.forEach(result => {
         if (result.parsing && result.parsing.jobs_found) {
             totalJobs += result.parsing.jobs_found;
         }
     });
-    
+
     document.getElementById('totalJobs').textContent = totalJobs;
 }
 
@@ -289,7 +353,7 @@ function updateSummaryStats(data) {
 function updateLastUpdateTime() {
     const now = new Date();
     const timeStr = now.toLocaleTimeString();
-    document.getElementById('lastUpdateTime').textContent = 
+    document.getElementById('lastUpdateTime').textContent =
         `Last tested: ${timeStr}`;
 }
 
@@ -307,19 +371,19 @@ async function refreshAllSources() {
 function showSourceDetails(sourceId) {
     console.log('=== showSourceDetails called ===');
     console.log('Source ID:', sourceId);
-    
+
     if (!sourceId) {
         console.error('No source ID provided!');
         return;
     }
-    
+
     // Hide test endpoints page
     const testContainer = document.getElementById('testEndpointsContainer');
     if (testContainer) {
         testContainer.style.display = 'none';
         console.log('Hidden test endpoints container');
     }
-    
+
     // Show details container
     const detailsContainer = document.getElementById('testDetailsContainer');
     if (detailsContainer) {
@@ -329,7 +393,7 @@ function showSourceDetails(sourceId) {
         console.error('Details container not found!');
         return;
     }
-    
+
     // Load details
     console.log('Loading source details for:', sourceId);
     loadSourceDetails(sourceId);
@@ -374,7 +438,7 @@ window.handleCardClick = handleCardClick;
 console.log('Test endpoints script loading...');
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         console.log('Test endpoints DOM loaded');
     });
 } else {

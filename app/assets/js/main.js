@@ -11,7 +11,7 @@
 let currentEditId = null;
 
 // Initialize the application when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log('DOM loaded, calling loadJobs()');
     loadJobs();
 });
@@ -22,11 +22,11 @@ document.addEventListener('DOMContentLoaded', function() {
 async function loadJobs() {
     const jobsContainer = document.getElementById('jobsContainer');
     jobsContainer.innerHTML = '<p class="loading">Loading jobs...</p>';
-    
+
     console.log('Fetching jobs from API...');
     const jobs = await fetchJobs();
     console.log('Jobs received:', jobs);
-    
+
     if (jobs.length === 0) {
         jobsContainer.innerHTML = `
             <div class="empty-state">
@@ -36,7 +36,7 @@ async function loadJobs() {
         `;
         return;
     }
-    
+
     jobsContainer.innerHTML = '';
     jobs.forEach(job => {
         const jobCard = createJobCard(job);
@@ -72,7 +72,7 @@ function createJobCard(job) {
  */
 async function submitJobForm(event) {
     event.preventDefault();
-    
+
     const jobData = {
         title: document.getElementById('jobTitle').value,
         company: document.getElementById('company').value,
@@ -81,9 +81,9 @@ async function submitJobForm(event) {
         description: document.getElementById('description').value,
         salary: document.getElementById('salary').value
     };
-    
+
     let success = false;
-    
+
     if (currentEditId) {
         // Update existing job
         success = await updateJob(currentEditId, jobData);
@@ -91,7 +91,7 @@ async function submitJobForm(event) {
         // Create new job
         success = await createJob(jobData);
     }
-    
+
     if (success) {
         resetForm();
         await loadJobs();
@@ -104,12 +104,12 @@ async function submitJobForm(event) {
 async function editJob(jobId) {
     const jobs = await fetchJobs();
     const job = jobs.find(j => j.id === jobId);
-    
+
     if (!job) {
         showAlert('Job not found', 'danger');
         return;
     }
-    
+
     // Populate form fields
     document.getElementById('jobId').value = job.id;
     document.getElementById('jobTitle').value = job.title || '';
@@ -118,12 +118,12 @@ async function editJob(jobId) {
     document.getElementById('jobType').value = job.jobType || '';
     document.getElementById('description').value = job.description || '';
     document.getElementById('salary').value = job.salary || '';
-    
+
     // Update form UI
     document.getElementById('formTitle').textContent = 'Edit Job';
     document.getElementById('submitBtn').textContent = 'Update Job';
     currentEditId = jobId;
-    
+
     // Scroll to form
     document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
 }
@@ -163,15 +163,15 @@ function resetForm() {
  */
 async function searchJobs() {
     const searchTerm = document.getElementById('searchInput').value;
-    
+
     if (!searchTerm.trim()) {
         await loadJobs();
         return;
     }
-    
+
     const jobsContainer = document.getElementById('jobsContainer');
     const jobs = await fetchJobs({ search: searchTerm });
-    
+
     if (jobs.length === 0) {
         jobsContainer.innerHTML = `
             <div class="empty-state">
@@ -181,7 +181,7 @@ async function searchJobs() {
         `;
         return;
     }
-    
+
     jobsContainer.innerHTML = '';
     jobs.forEach(job => {
         const jobCard = createJobCard(job);
@@ -216,17 +216,17 @@ function escapeHtml(text) {
  */
 function showJobsPage() {
     console.log('Showing jobs page...');
-    
+
     // Hide all other containers
     document.getElementById('testEndpointsContainer').style.display = 'none';
     document.getElementById('testDetailsContainer').style.display = 'none';
-    
+
     // Show jobs page
     const jobsPage = document.getElementById('jobsPage');
     if (jobsPage) {
         jobsPage.style.display = 'block';
     }
-    
+
     // Load jobs
     loadJobs();
 }
@@ -236,7 +236,7 @@ function showJobsPage() {
  */
 function loadPage(page) {
     console.log('Loading page:', page);
-    
+
     if (page === 'jobs') {
         showJobsPage();
     }

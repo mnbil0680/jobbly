@@ -168,12 +168,17 @@ class SourceFetcher {
     /**
      * Setup cURL request with headers, auth, and parameters
      * 
-     * @param resource $ch cURL handle
+        * @param CurlHandle $ch cURL handle
      * @param array $source Source definition
      */
     private function setup_curl_request(&$ch, $source) {
         $url = $source['endpoint'];
         $timeout = $source['timeout'] ?? $this->default_timeout;
+
+        // Replace endpoint placeholders that are key-in-path (e.g., Jooble)
+        if (strpos($url, 'JOOBLE_API_KEY') !== false) {
+            $url = str_replace('JOOBLE_API_KEY', $this->config['JOOBLE_API_KEY'] ?? '', $url);
+        }
 
         // Build query parameters for GET requests
         if ($source['method'] === 'GET' && !empty($source['params'])) {
@@ -266,12 +271,9 @@ class SourceFetcher {
         if ($source['id'] === 'jooble') {
             $data = [
                 'keywords' => 'remote',
-                'searchMode' => 'entire',
-                'baseUri' => 'https://jooble.org',
-                'pageNum' => 1,
-                'pageSize' => 50
+                'location' => '',
+                'page' => 1
             ];
-            $data['apiKey'] = $this->config['JOOBLE_API_KEY'] ?? '';
             return json_encode($data);
         }
         return json_encode($source['params'] ?? []);
@@ -285,6 +287,8 @@ class SourceFetcher {
      * @return array ['job_count' => N, 'sample_job' => {...}, 'error' => null]
      */
     private function parse_response($response, $source) {
+        $response = $this->strip_http_headers($response);
+
         $result = [
             'job_count' => 0,
             'sample_job' => null,
@@ -296,6 +300,8 @@ class SourceFetcher {
                 return $this->parse_json($response, $source);
             } elseif ($source['parser'] === 'rss') {
                 return $this->parse_rss($response, $source);
+            } elseif ($source['parser'] === 'linkedin_html') {
+                return $this->parse_linkedin_html($response);
             } else {
                 $result['error'] = "Unknown parser: {$source['parser']}";
             }
@@ -304,6 +310,83 @@ class SourceFetcher {
         }
 
         return $result;
+    }
+
+    /**
+     * Parse LinkedIn guest search HTML snippets.
+     *
+     * @param string $response HTML markup
+     * @return array ['job_count', 'sample_job', 'error']
+     */
+    private function parse_linkedin_html($response) {
+        $result = [
+            'job_count' => 0,
+            'sample_job' => null,
+            'error' => null
+        ];
+
+        if (!is_string($response) || trim($response) === '') {
+            $result['error'] = 'Empty HTML response';
+            return $result;
+        }
+
+        libxml_use_internal_errors(true);
+        $dom = new DOMDocument();
+        $loaded = $dom->loadHTML('<?xml encoding="utf-8" ?>' . $response);
+        libxml_clear_errors();
+
+        if (!$loaded) {
+            $result['error'] = 'Invalid LinkedIn HTML response';
+            return $result;
+        }
+
+        $xpath = new DOMXPath($dom);
+        $cards = $xpath->query('//div[contains(@class, "base-search-card") or contains(@class, "job-search-card") or contains(@class, "base-card")]');
+        $result['job_count'] = $cards ? $cards->length : 0;
+
+        if ($cards && $cards->length > 0) {
+            $first = $cards->item(0);
+
+            $title = trim($xpath->evaluate('string(.//h3[contains(@class, "base-search-card__title")])', $first));
+            $company = trim($xpath->evaluate('string(.//h4[contains(@class, "base-search-card__subtitle")])', $first));
+            $location = trim($xpath->evaluate('string(.//span[contains(@class, "job-search-card__location")])', $first));
+            $applyUrl = trim($xpath->evaluate('string(.//a[contains(@class, "base-card__full-link")]/@href)', $first));
+
+            $result['sample_job'] = [
+                'title' => $title !== '' ? $title : 'Unknown',
+                'company' => $company !== '' ? $company : 'Unknown',
+                'location' => $location !== '' ? $location : 'Unknown',
+                'apply_url' => $applyUrl !== '' ? $applyUrl : 'N/A',
+                'id' => $applyUrl !== '' ? $applyUrl : 'N/A'
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Strip one or more HTTP header blocks from a cURL response.
+     * Handles redirect chains that can prepend multiple headers.
+     *
+     * @param string $response Raw cURL response
+     * @return string Body payload
+     */
+    private function strip_http_headers($response) {
+        if (!is_string($response) || $response === '') {
+            return '';
+        }
+
+        $payload = ltrim($response);
+
+        while (preg_match('/^HTTP\/\d(?:\.\d)?\s+\d{3}/i', $payload) === 1) {
+            $header_end = strpos($payload, "\r\n\r\n");
+            if ($header_end === false) {
+                break;
+            }
+            $payload = ltrim(substr($payload, $header_end + 4));
+        }
+
+        return $payload;
     }
 
     /**
@@ -345,9 +428,22 @@ class SourceFetcher {
             $jobs = [];
         }
 
+        // Filter out non-job records (e.g., metadata rows from some APIs).
+        $filtered_jobs = [];
+        foreach ($jobs as $job) {
+            if ($this->is_job_like_record($job, $source)) {
+                $filtered_jobs[] = $job;
+            }
+        }
+
+        // Fallback to original list if filtering becomes too strict.
+        if (!empty($filtered_jobs)) {
+            $jobs = $filtered_jobs;
+        }
+
         $result['job_count'] = count($jobs);
 
-        // Extract sample job (first result)
+        // Extract sample job (first valid result)
         if (!empty($jobs) && is_array($jobs)) {
             $first_job = reset($jobs);
             if (is_array($first_job)) {
@@ -356,6 +452,32 @@ class SourceFetcher {
         }
 
         return $result;
+    }
+
+    /**
+     * Determine if a decoded array item looks like a real job row.
+     *
+     * @param mixed $item
+     * @param array $source
+     * @return bool
+     */
+    private function is_job_like_record($item, $source) {
+        if (!is_array($item)) {
+            return false;
+        }
+
+        $job_id_field = $source['job_id_field'] ?? '';
+        if (!empty($job_id_field) && array_key_exists($job_id_field, $item)) {
+            return true;
+        }
+
+        foreach (($source['sample_fields'] ?? []) as $mapped_field) {
+            if (!empty($mapped_field) && array_key_exists($mapped_field, $item)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -415,7 +537,23 @@ class SourceFetcher {
         $field_map = $source['sample_fields'] ?? [];
         foreach ($field_map as $summary_key => $job_key) {
             if (isset($job[$job_key])) {
-                $summary[$summary_key] = $job[$job_key];
+                $value = $job[$job_key];
+
+                // Convert arrays/objects to readable strings for UI display.
+                if (is_array($value)) {
+                    if (empty($value)) {
+                        $value = 'N/A';
+                    } else {
+                        $scalar_values = array_values(array_filter($value, function ($item) {
+                            return is_scalar($item);
+                        }));
+                        $value = !empty($scalar_values) ? implode(', ', $scalar_values) : json_encode($value);
+                    }
+                } elseif (is_object($value)) {
+                    $value = json_encode($value);
+                }
+
+                $summary[$summary_key] = (string)$value;
             }
         }
 
