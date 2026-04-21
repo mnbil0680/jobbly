@@ -27,6 +27,10 @@ class JobsDatabase {
     public function __construct() {
         // TODO: Initialize database connection from config.php
         // $this->connection = new mysqli(...);
+        $this->connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+        if ($this->connection->connect_error) {
+            throw new Exception('Database connection failed: ' . $this->connection->connect_error);
+        }
     }
 
     /**
