@@ -10,7 +10,7 @@
       "limit": 100
     },
     "headers": {},
-    "timeout": 10,
+    "timeout": 20,
     "parser": "json_array",
     "required_keys": [],
     "enabled": true,
@@ -29,11 +29,12 @@
     "id": "himalayas",
     "name": "Himalayas",
     "type": "json_api",
-    "endpoint": "https://himalayas.app/api/v1/jobs",
+    "endpoint": "https://himalayas.app/jobs/api",
     "method": "GET",
     "auth": "none",
     "params": {
-      "limit": 100
+      "limit": 20,
+      "offset": 0
     },
     "headers": {},
     "timeout": 10,
@@ -41,14 +42,14 @@
     "required_keys": [],
     "enabled": true,
     "description": "Remote worldwide",
-    "job_path": "data",
-    "job_id_field": "id",
+    "job_path": "jobs",
+    "job_id_field": "guid",
     "sample_fields": {
       "title": "title",
-      "company": "company_name",
-      "location": "location",
-      "job_type": "job_type",
-      "apply_url": "apply_url"
+      "company": "companyName",
+      "location": "locationRestrictions",
+      "job_type": "employmentType",
+      "apply_url": "applicationLink"
     }
   },
   {
@@ -94,10 +95,10 @@
     "job_path": "",
     "job_id_field": "id",
     "sample_fields": {
-      "title": "title",
+      "title": "position",
       "company": "company",
       "location": "location",
-      "job_type": "job_type",
+      "job_type": "tags",
       "apply_url": "url"
     }
   },
@@ -105,7 +106,7 @@
     "id": "arbeitnow",
     "name": "Arbeitnow",
     "type": "json_api",
-    "endpoint": "https://api.arbeitnow.com/api/v2/job-board-items",
+    "endpoint": "https://www.arbeitnow.com/api/job-board-api",
     "method": "GET",
     "auth": "none",
     "params": {},
@@ -116,12 +117,12 @@
     "enabled": true,
     "description": "Europe + Remote",
     "job_path": "data",
-    "job_id_field": "id",
+    "job_id_field": "slug",
     "sample_fields": {
       "title": "title",
       "company": "company_name",
       "location": "location",
-      "job_type": "job_type",
+      "job_type": "job_types",
       "apply_url": "url"
     }
   },
@@ -129,11 +130,14 @@
     "id": "we_work_remotely",
     "name": "We Work Remotely",
     "type": "rss_feed",
-    "endpoint": "https://weworkremotely.com/categories/2/jobs.rss",
+    "endpoint": "https://weworkremotely.com/remote-jobs.rss",
     "method": "GET",
     "auth": "none",
     "params": {},
-    "headers": {},
+    "headers": {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+      "Accept": "application/rss+xml, application/xml;q=0.9, */*;q=0.8"
+    },
     "timeout": 10,
     "parser": "rss",
     "required_keys": [],
@@ -152,11 +156,14 @@
     "id": "working_nomads",
     "name": "Working Nomads",
     "type": "json_api",
-    "endpoint": "https://www.workingnomads.com/api/jobs",
+    "endpoint": "https://www.workingnomads.com/api/exposed_jobs/",
     "method": "GET",
     "auth": "none",
     "params": {},
-    "headers": {},
+    "headers": {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+      "Accept": "application/json, text/plain, */*"
+    },
     "timeout": 10,
     "parser": "json_array",
     "required_keys": [],
@@ -188,7 +195,7 @@
       "X-RapidAPI-Key": "RAPIDAPI_KEY",
       "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
     },
-    "timeout": 10,
+    "timeout": 20,
     "parser": "json_array",
     "required_keys": ["RAPIDAPI_KEY"],
     "enabled": true,
@@ -210,7 +217,7 @@
     "id": "linkedin",
     "name": "LinkedIn",
     "type": "guest_api",
-    "endpoint": "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting",
+    "endpoint": "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
     "method": "GET",
     "auth": "none",
     "params": {
@@ -220,9 +227,12 @@
       "start": 0,
       "count": 25
     },
-    "headers": {},
+    "headers": {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+    },
     "timeout": 10,
-    "parser": "json",
+    "parser": "linkedin_html",
     "required_keys": [],
     "enabled": true,
     "description": "Guest API (Egypt + Saudi + Remote worldwide)",
@@ -239,7 +249,7 @@
     "id": "adzuna",
     "name": "Adzuna",
     "type": "json_api",
-    "endpoint": "https://api.adzuna.com/v1/api/jobs/",
+    "endpoint": "https://api.adzuna.com/v1/api/jobs/gb/search/1",
     "method": "GET",
     "auth": "api_key_param",
     "params": {
@@ -325,7 +335,7 @@
     "id": "jooble",
     "name": "Jooble",
     "type": "json_api",
-    "endpoint": "https://api.jooble.org/api/v2/search",
+    "endpoint": "https://jooble.org/api/JOOBLE_API_KEY",
     "method": "POST",
     "auth": "api_key_body",
     "params": {},
@@ -393,7 +403,7 @@
     },
     "timeout": 10,
     "parser": "json_array",
-    "required_keys": [],
+    "required_keys": ["USAJOBS_API_KEY"],
     "enabled": true,
     "description": "US Gov remote IT",
     "job_path": "SearchResult.SearchResultItems",
