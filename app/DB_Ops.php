@@ -54,7 +54,48 @@ class JobsDatabase {
      */
     public function createJob($data) {
         // TODO: Implement INSERT query with validation
-        return false;
+        if(empty($data['title']) || empty($data['company_name'])){
+            throw new Exception('Invalid job data: title and company_name are required');
+        }
+        if(empty($data['category_id'])){
+            throw new Exception('Invalid job data: category_id is required');
+        }
+        
+        $data = $this->sanitizeData($data);
+
+        $stmt = $this->connection->prepare(
+            "INSERT INTO JOBS
+            (company_name, category_id, title, description, location, job_type, salary_min, salary_max, currency, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+
+        if($stmt){
+            throw new Exception("Prepare failed: " . $this->connection->error);
+        }
+
+        $stmt->bind_param(
+            "sissssddss",
+            $data['company_name'],
+            $data['category_id'],
+            $data['title'],
+            $data['description'],
+            $data['location'],
+            $data['job_type'],
+            $data['salary_min'],
+            $data['salary_max'],
+            $data['currency'],
+            $data['status']
+        );
+
+        $status = 'active';
+
+        if(!$stmt->execute()){
+            throw new Exception("Execute failed: " . $stmt->error);
+        }
+
+        $newId = $this->connection->insert_id;
+        $stmt->close();
+        return $newId;
     }
 
     /**
@@ -62,8 +103,74 @@ class JobsDatabase {
      */
     public function updateJob($id, $data) {
         // TODO: Implement UPDATE query with validation
-        return false;
+        if(empty($id) || !is_numeric($id)){
+            throw new Exception('Job ID is required for update');
+        }
+        $existingJob = $this->getJobById($id);
+        if(!$existingJob){
+            throw new Exception('Job not found with ID: ' . $id);
+        }
+
+        
+        if (isset($data['title']) && empty($data['title'])) {
+        throw new Exception('Title cannot be empty');
+        }
+        if (isset($data['company_name']) && empty($data['company_name'])) {
+            throw new Exception('Company Name cannot be empty');
+        }
+
+
+        $data = $this->sanitizeData($data);
+
+        $updateFields = [];
+        $types = '';
+        $values = [];
+
+
+        $fieldMap = [
+        'title' => 's',
+        'company_name' => 's',
+        'location' => 's',
+        'job_type' => 's',
+        'description' => 's',
+        'salary_min' => 'd',
+        'salary_max' => 'd',
+        'currency' => 's',
+        'category_id' => 'i',
+        'status' => 's'
+        ];
+
+        foreach ($fieldMap as $field => $type) {
+        if (isset($data[$field])) {
+            $updateFields[] = "$field = ?";
+            $types .= $type;
+            $values[] = $data[$field];
+            }
+        }
+
+        if(empty($updateFields)){
+            throw new Exception('No valid fields provided for update');
+        }
+
+        $values[] = $id;
+        $types .= 'i';
+
+        $sql = "UPDATE JOBS SET " . implode(', ', $updateFields) . " WHERE id = ?";
+        $stmt = $this->connection->prepare($sql);
+        if(!$stmt){
+            throw new Exception("Prepare failed: " . $this->connection->error);
+        }
+
+        $stmt->bind_param($types, ...$values);
+
+        if(!$stmt->execute()){
+            throw new Exception("Execute failed: " . $stmt->error);
+        }
+        
+        $stmt->close();
+        return true;
     }
+        
 
     /**
      * Delete a job
