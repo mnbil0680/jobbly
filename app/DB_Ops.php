@@ -27,9 +27,22 @@ class JobsDatabase {
     public function __construct() {
         // TODO: Initialize database connection from config.php
         // $this->connection = new mysqli(...);
-        $this->connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-        if ($this->connection->connect_error) {
-            throw new Exception('Database connection failed: ' . $this->connection->connect_error);
+        public function __construct() {
+            $host = 'localhost';
+            $user = 'root';
+            $pass = '';
+            $name = 'jobbly';
+
+            $this->connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+            if ($this->connection->connect_error) {
+                throw new Exception('Database connection failed: ' . $this->connection->connect_error);
+            }
+        }
+    }
+
+    public function __destruct() {
+        if ($this->connection) {
+            $this->connection->close();
         }
     }
 
@@ -38,7 +51,39 @@ class JobsDatabase {
      */
     public function getAllJobs($search = '') {
         // TODO: Implement SELECT query with search filter
-        return [];
+        $query = "SELECT j.*, c.name as category_name 
+                  FROM jobs j 
+                  LEFT JOIN categories c ON j.category_id = c.id 
+                  WHERE 1=1";
+        
+        $params = [];
+        $types = "";
+
+        if (!empty($search)) {
+            $query .= " AND (j.title LIKE ? OR j.company_name LIKE ? OR j.description LIKE ?)";
+            $searchTerm = "%$search%";
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+            $types .= "sss";
+        }
+
+        if (!empty($category_id)) {
+            $query .= " AND j.category_id = ?";
+            $params[] = $category_id;
+            $types .= "i";
+        }
+
+        $query .= " ORDER BY j.created_at DESC";
+
+        $stmt = $this->connection->prepare($query);
+        if ($params) {
+            $stmt->bind_param($types, ...$params);
+        }
+        
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
 
     /**
@@ -46,7 +91,10 @@ class JobsDatabase {
      */
     public function getJobById($id) {
         // TODO: Implement SELECT query for single job
-        return null;
+        $stmt = $this->connection->prepare("SELECT j.*, c.name as category_name FROM jobs j LEFT JOIN categories c ON j.category_id = c.id WHERE j.id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
     }
 
     /**
@@ -69,7 +117,7 @@ class JobsDatabase {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
 
-        if($stmt){
+        if(!$stmt){
             throw new Exception("Prepare failed: " . $this->connection->error);
         }
 
@@ -96,6 +144,39 @@ class JobsDatabase {
         $newId = $this->connection->insert_id;
         $stmt->close();
         return $newId;
+    }
+
+    // ceateJob api version
+    public function cacheApiJob($jobData) {
+        $poster_id = $jobData['source_api'] . "_" . $jobData['external_id'];
+        $stmt = $this->connection->prepare("SELECT id FROM jobs WHERE poster_id = ?");
+        $stmt->bind_param("s", $poster_id);
+        $stmt->execute();
+        $existing = $stmt->get_result()->fetch_assoc();
+        if ($existing) return $existing['id'];
+
+        $stmt = $this->connection->prepare(
+            "INSERT INTO jobs (company_name, poster_id, category_id, title, description, location, job_type, salary_min, salary_max, currency, status) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+        
+        $status = 'open';
+        $stmt->bind_param(
+            "ssissssddss",
+            $jobData['company_name'],
+            $poster_id,
+            $jobData['category_id'],
+            $jobData['title'],
+            $jobData['description'],
+            $jobData['location'],
+            $jobData['job_type'],
+            $jobData['salary_min'],
+            $jobData['salary_max'],
+            $jobData['currency'],
+            $status
+        );
+        $stmt->execute();
+        return $this->connection->insert_id;
     }
 
     /**
@@ -177,7 +258,27 @@ class JobsDatabase {
      */
     public function deleteJob($id) {
         // TODO: Implement DELETE query
-        return false;
+        if(empty($id) || !is_numeric($id)){
+            throw new Exception('Job ID is required for delete');
+        }
+        $existingJob = $this->getJobById($id);
+        if(!$existingJob){
+            throw new Exception('Job not found with ID: ' . $id);
+        }
+
+        $stmt = $this->connection->prepare("DELETE FROM JOBS WHERE id = ?");
+
+        if(!$stmt){
+            throw new Exception("Prepare failed: " . $this->connection->error);
+        }
+        $stmt->bind_param("i", $id);
+
+        if(!$stmt->execute()){
+            throw new Exception("Execute failed: " . $stmt->error);
+        }
+
+        $stmt->close();
+        return true;
     }
 
     /**
@@ -193,9 +294,72 @@ class JobsDatabase {
      */
     private function sanitizeData($data) {
         // TODO: Implement sanitization logic
+        $sanitized = [];
+        foreach ($data as $key => $value) {
+        if (is_string($value)) {
+            $sanitized[$key] = trim($value);
+        } else {
+            $sanitized[$key] = $value;
+        }
+    }
+    return $sanitized;
         return $data;
     }
-}
 
+    /**
+     * user logic
+     */
+
+    public function updateGuestProfile($userId, $name, $details) {
+        $stmt = $this->connection->prepare("UPDATE users SET name = ?, details = ? WHERE id = ?");
+        $stmt->bind_param("ssi", $name, $details, $userId);
+        return $stmt->execute();
+    }
+
+    public function getGuestUser() {
+        $result = $this->connection->query("SELECT * FROM users LIMIT 1");
+        $user = $result->fetch_assoc();
+        
+        if (!$user) {
+            $this->connection->query("INSERT INTO users (name, details) VALUES ('Guest User', 'Default guest profile')");
+            return $this->getGuestUser();
+        }
+        return $user;
+    }
+
+
+    /**
+     * save job logic
+     */
+
+    public function saveJobForUser($userId, $jobId) {
+        $stmt = $this->connection->prepare("INSERT IGNORE INTO saved_jobs (user_id, job_id) VALUES (?, ?)");
+        $stmt->bind_param("ii", $userId, $jobId);
+        return $stmt->execute();
+    }
+
+    public function unsaveJob($userId, $jobId) {
+        $stmt = $this->connection->prepare("DELETE FROM saved_jobs WHERE user_id = ? AND job_id = ?");
+        $stmt->bind_param("ii", $userId, $jobId);
+        return $stmt->execute();
+    }
+
+    public function getSavedJobs($userId) {
+        $stmt = $this->connection->prepare("
+            SELECT j.* FROM jobs j 
+            JOIN saved_jobs sj ON j.id = sj.job_id 
+            WHERE sj.user_id = ?
+            ORDER BY j.created_at DESC
+        ");
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    public function getCategories() {
+        $result = $this->connection->query("SELECT * FROM categories ORDER BY name ASC");
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
+}
 // Usage: $db = new JobsDatabase();
 ?>
