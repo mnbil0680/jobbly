@@ -46,7 +46,7 @@ class JobsDatabase {
                   FROM jobs j 
                   LEFT JOIN categories c ON j.category_id = c.id 
                   WHERE 1=1";
-        
+
         $params = [];
         $types = "";
 
@@ -71,7 +71,7 @@ class JobsDatabase {
         if ($params) {
             $stmt->bind_param($types, ...$params);
         }
-        
+
         $stmt->execute();
         $result = $stmt->get_result();
         return $result->fetch_all(MYSQLI_ASSOC);
@@ -99,7 +99,7 @@ class JobsDatabase {
         if(empty($data['category_id'])){
             throw new Exception('Invalid job data: category_id is required');
         }
-        
+
         $data = $this->sanitizeData($data);
 
         $stmt = $this->connection->prepare(
@@ -150,7 +150,7 @@ class JobsDatabase {
             "INSERT INTO jobs (company_name, poster_id, category_id, title, description, location, job_type, salary_min, salary_max, currency, status) 
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
-        
+
         $status = 'open';
         $stmt->bind_param(
             "ssissssddss",
@@ -183,9 +183,9 @@ class JobsDatabase {
             throw new Exception('Job not found with ID: ' . $id);
         }
 
-        
+
         if (isset($data['title']) && empty($data['title'])) {
-        throw new Exception('Title cannot be empty');
+            throw new Exception('Title cannot be empty');
         }
         if (isset($data['company_name']) && empty($data['company_name'])) {
             throw new Exception('Company Name cannot be empty');
@@ -200,23 +200,23 @@ class JobsDatabase {
 
 
         $fieldMap = [
-        'title' => 's',
-        'company_name' => 's',
-        'location' => 's',
-        'job_type' => 's',
-        'description' => 's',
-        'salary_min' => 'd',
-        'salary_max' => 'd',
-        'currency' => 's',
-        'category_id' => 'i',
-        'status' => 's'
+            'title' => 's',
+            'company_name' => 's',
+            'location' => 's',
+            'job_type' => 's',
+            'description' => 's',
+            'salary_min' => 'd',
+            'salary_max' => 'd',
+            'currency' => 's',
+            'category_id' => 'i',
+            'status' => 's'
         ];
 
         foreach ($fieldMap as $field => $type) {
-        if (isset($data[$field])) {
-            $updateFields[] = "$field = ?";
-            $types .= $type;
-            $values[] = $data[$field];
+            if (isset($data[$field])) {
+                $updateFields[] = "$field = ?";
+                $types .= $type;
+                $values[] = $data[$field];
             }
         }
 
@@ -238,11 +238,11 @@ class JobsDatabase {
         if(!$stmt->execute()){
             throw new Exception("Execute failed: " . $stmt->error);
         }
-        
+
         $stmt->close();
         return true;
     }
-        
+
 
     /**
      * Delete a job
@@ -308,7 +308,7 @@ class JobsDatabase {
     public function getGuestUser() {
         $result = $this->connection->query("SELECT * FROM users LIMIT 1");
         $user = $result->fetch_assoc();
-        
+
         if (!$user) {
             $this->connection->query("INSERT INTO users (name, details) VALUES ('Guest User', 'Default guest profile')");
             return $this->getGuestUser();
