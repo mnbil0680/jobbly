@@ -103,46 +103,72 @@ function handleRead() {
 }
 
 function handleCreate() {
-    // Get JSON data from request body
-    $input = json_decode(file_get_contents('php://input'), true);
+    try {
+        // Get JSON data from request body
+        $input = json_decode(file_get_contents('php://input'), true);
 
-    // Validate required fields
-    if (empty($input['title']) || empty($input['company'])) {
+        // Validate required fields
+        if (empty($input['title']) || empty($input['company_name'])) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Title and Company Name are required'
+            ]);
+            return;
+        }
+
+        // Create database instance and save job
+        $db = new JobsDatabase();
+        $newJobId = $db->createJob($input);
+
+        // Return success response
+        echo json_encode([
+            'success' => true,
+            'message' => 'Job created successfully',
+            'id' => $newJobId
+        ]);
+
+    } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
             'success' => false,
-            'message' => 'Title and Company are required'
+            'message' => $e->getMessage()
         ]);
-        return;
     }
-
-    // In a real app, save to database via DB_Ops.php
-    // For now, just return success
-    echo json_encode([
-        'success' => true,
-        'message' => 'Job created successfully',
-        'id' => rand(100, 999)
-    ]);
 }
 
 function handleUpdate() {
-    // Get JSON data from request body
-    $input = json_decode(file_get_contents('php://input'), true);
+    try {
+        // Get JSON data from request body
+        $input = json_decode(file_get_contents('php://input'), true);
 
-    if (empty($input['id'])) {
+        // Validate job ID
+        if (empty($input['id'])) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Job ID is required'
+            ]);
+            return;
+        }
+
+        // Create database instance and update job
+        $db = new JobsDatabase();
+        $db->updateJob($input['id'], $input);
+
+        // Return success response
+        echo json_encode([
+            'success' => true,
+            'message' => 'Job updated successfully'
+        ]);
+
+    } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
             'success' => false,
-            'message' => 'Job ID is required'
+            'message' => $e->getMessage()
         ]);
-        return;
     }
-
-    // In a real app, update in database via DB_Ops.php
-    echo json_encode([
-        'success' => true,
-        'message' => 'Job updated successfully'
-    ]);
 }
 
 function handleDelete() {

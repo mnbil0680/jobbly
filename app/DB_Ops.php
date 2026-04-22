@@ -25,18 +25,9 @@ class JobsDatabase {
     private $connection;
 
     public function __construct() {
-        // TODO: Initialize database connection from config.php
-        // $this->connection = new mysqli(...);
-        public function __construct() {
-            $host = 'localhost';
-            $user = 'root';
-            $pass = '';
-            $name = 'jobbly';
-
-            $this->connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-            if ($this->connection->connect_error) {
-                throw new Exception('Database connection failed: ' . $this->connection->connect_error);
-            }
+        $this->connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+        if ($this->connection->connect_error) {
+            throw new Exception('Database connection failed: ' . $this->connection->connect_error);
         }
     }
 
@@ -293,17 +284,15 @@ class JobsDatabase {
      * Sanitize input data
      */
     private function sanitizeData($data) {
-        // TODO: Implement sanitization logic
         $sanitized = [];
         foreach ($data as $key => $value) {
-        if (is_string($value)) {
-            $sanitized[$key] = trim($value);
-        } else {
-            $sanitized[$key] = $value;
+            if (is_string($value)) {
+                $sanitized[$key] = trim($value);
+            } else {
+                $sanitized[$key] = $value;
+            }
         }
-    }
-    return $sanitized;
-        return $data;
+        return $sanitized;
     }
 
     /**
