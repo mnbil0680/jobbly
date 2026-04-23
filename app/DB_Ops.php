@@ -21,17 +21,20 @@
 // Load configuration
 require_once __DIR__ . '/../config/config.php';
 
-class JobsDatabase {
+class JobsDatabase
+{
     private $connection;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
         if ($this->connection->connect_error) {
             throw new Exception('Database connection failed: ' . $this->connection->connect_error);
         }
     }
 
-    public function __destruct() {
+    public function __destruct()
+    {
         if ($this->connection) {
             $this->connection->close();
         }
@@ -40,7 +43,8 @@ class JobsDatabase {
     /**
      * Get all jobs with optional search filter
      */
-    public function getAllJobs($search = '', $limit = null, $offset = 0) {
+    public function getAllJobs($search = '', $limit = null, $offset = 0)
+    {
         $query = "SELECT j.*, c.name as category_name 
                   FROM jobs j 
                   LEFT JOIN categories c ON j.category_id = c.id 
@@ -80,7 +84,8 @@ class JobsDatabase {
     /**
      * Get total count of jobs for pagination
      */
-    public function getTotalJobsCount($search = '') {
+    public function getTotalJobsCount($search = '')
+    {
         $query = "SELECT COUNT(*) as total FROM jobs j WHERE 1=1";
         $params = [];
         $types = "";
@@ -108,7 +113,8 @@ class JobsDatabase {
     /**
      * Get a single job by ID
      */
-    public function getJobById($id) {
+    public function getJobById($id)
+    {
         // TODO: Implement SELECT query for single job
         $stmt = $this->connection->prepare("SELECT j.*, c.name as category_name FROM jobs j LEFT JOIN categories c ON j.category_id = c.id WHERE j.id = ?");
         $stmt->bind_param("i", $id);
@@ -119,12 +125,13 @@ class JobsDatabase {
     /**
      * Create a new job
      */
-    public function createJob($data) {
+    public function createJob($data)
+    {
         // TODO: Implement INSERT query with validation
-        if(empty($data['title']) || empty($data['company_name'])){
+        if (empty($data['title']) || empty($data['company_name'])) {
             throw new Exception('Invalid job data: title and company_name are required');
         }
-        if(empty($data['category_id'])){
+        if (empty($data['category_id'])) {
             throw new Exception('Invalid job data: category_id is required');
         }
 
@@ -136,7 +143,7 @@ class JobsDatabase {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
 
-        if(!$stmt){
+        if (!$stmt) {
             throw new Exception("Prepare failed: " . $this->connection->error);
         }
 
@@ -156,7 +163,7 @@ class JobsDatabase {
 
         $status = 'active';
 
-        if(!$stmt->execute()){
+        if (!$stmt->execute()) {
             throw new Exception("Execute failed: " . $stmt->error);
         }
 
@@ -169,11 +176,12 @@ class JobsDatabase {
     private $selectStmt = null;
     private $insertStmt = null;
 
-    public function cacheApiJob($jobData) {
+    public function cacheApiJob($jobData)
+    {
         if (!$this->selectStmt) {
             $this->selectStmt = $this->connection->prepare("SELECT id FROM jobs WHERE poster_id = ?");
         }
-        
+
         $poster_id = $jobData['poster_id'] ?? ($jobData['source_api'] . "_" . $jobData['external_id']);
         $this->selectStmt->bind_param("s", $poster_id);
         $this->selectStmt->execute();
@@ -202,7 +210,7 @@ class JobsDatabase {
             $jobData['currency'],
             $status
         );
-        
+
         if (!$this->insertStmt->execute()) {
             error_log("Failed to insert job: " . $this->insertStmt->error);
             return false;
@@ -214,7 +222,8 @@ class JobsDatabase {
      * Bulk insert jobs into the database
      * Uses INSERT IGNORE to skip existing jobs (based on unique poster_id)
      */
-    public function bulkInsertJobs($jobs) {
+    public function bulkInsertJobs($jobs)
+    {
         if (empty($jobs)) return 0;
 
         $totalAffected = 0;
@@ -228,7 +237,7 @@ class JobsDatabase {
 
             foreach ($batch as $job) {
                 $placeholders[] = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                
+
                 // Ensure required fields
                 $company = $job['company_name'] ?? 'Unknown';
                 $poster_id = $job['poster_id'] ?? null;
@@ -280,13 +289,14 @@ class JobsDatabase {
     /**
      * Update an existing job
      */
-    public function updateJob($id, $data) {
+    public function updateJob($id, $data)
+    {
         // TODO: Implement UPDATE query with validation
-        if(empty($id) || !is_numeric($id)){
+        if (empty($id) || !is_numeric($id)) {
             throw new Exception('Job ID is required for update');
         }
         $existingJob = $this->getJobById($id);
-        if(!$existingJob){
+        if (!$existingJob) {
             throw new Exception('Job not found with ID: ' . $id);
         }
 
@@ -327,7 +337,7 @@ class JobsDatabase {
             }
         }
 
-        if(empty($updateFields)){
+        if (empty($updateFields)) {
             throw new Exception('No valid fields provided for update');
         }
 
@@ -336,13 +346,13 @@ class JobsDatabase {
 
         $sql = "UPDATE JOBS SET " . implode(', ', $updateFields) . " WHERE id = ?";
         $stmt = $this->connection->prepare($sql);
-        if(!$stmt){
+        if (!$stmt) {
             throw new Exception("Prepare failed: " . $this->connection->error);
         }
 
         $stmt->bind_param($types, ...$values);
 
-        if(!$stmt->execute()){
+        if (!$stmt->execute()) {
             throw new Exception("Execute failed: " . $stmt->error);
         }
 
@@ -354,24 +364,25 @@ class JobsDatabase {
     /**
      * Delete a job
      */
-    public function deleteJob($id) {
+    public function deleteJob($id)
+    {
         // TODO: Implement DELETE query
-        if(empty($id) || !is_numeric($id)){
+        if (empty($id) || !is_numeric($id)) {
             throw new Exception('Job ID is required for delete');
         }
         $existingJob = $this->getJobById($id);
-        if(!$existingJob){
+        if (!$existingJob) {
             throw new Exception('Job not found with ID: ' . $id);
         }
 
         $stmt = $this->connection->prepare("DELETE FROM JOBS WHERE id = ?");
 
-        if(!$stmt){
+        if (!$stmt) {
             throw new Exception("Prepare failed: " . $this->connection->error);
         }
         $stmt->bind_param("i", $id);
 
-        if(!$stmt->execute()){
+        if (!$stmt->execute()) {
             throw new Exception("Execute failed: " . $stmt->error);
         }
 
@@ -382,7 +393,8 @@ class JobsDatabase {
     /**
      * Validate job data
      */
-    private function validateJobData($data) {
+    private function validateJobData($data)
+    {
         // TODO: Implement validation logic
         return true;
     }
@@ -390,7 +402,8 @@ class JobsDatabase {
     /**
      * Sanitize input data
      */
-    private function sanitizeData($data) {
+    private function sanitizeData($data)
+    {
         $sanitized = [];
         foreach ($data as $key => $value) {
             if (is_string($value)) {
@@ -406,47 +419,52 @@ class JobsDatabase {
      * user logic
      */
 
-    public function updateGuestProfile($userId, $name, $details) {
+    public function updateGuestProfile($userId, $name, $details)
+    {
         $stmt = $this->connection->prepare("UPDATE users SET name = ?, details = ? WHERE id = ?");
         $stmt->bind_param("ssi", $name, $details, $userId);
         return $stmt->execute();
     }
 
     public function getGuestUser() {
-        $result = $this->connection->query("SELECT * FROM users ORDER BY id ASC LIMIT 1");
-        $user = $result->fetch_assoc();
+        $stmt = $this->connection->prepare("SELECT * FROM users WHERE id = 1");
+        $stmt->execute();
+        $user = $stmt->get_result()->fetch_assoc();
 
         if (!$user) {
-            $this->connection->query("INSERT INTO users (name, email, password, details) VALUES ('Guest User', 'guest@example.com', 'password', 'Default guest profile')");
+            $stmt = $this->connection->prepare("INSERT INTO users (name, details) VALUES ('Guest User', 'Default guest profile')");
+            $stmt->execute();
             return $this->getGuestUser();
         }
         return $user;
     }
 
-    public function registerUser($name, $email, $password) {
+    public function registerUser($name, $email, $password)
+    {
         $hashed = password_hash($password, PASSWORD_DEFAULT);
         $stmt = $this->connection->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
         if (!$stmt) {
             throw new Exception("Prepare failed: " . $this->connection->error);
         }
         $stmt->bind_param("sss", $name, $email, $hashed);
-        
+
         if ($stmt->execute()) {
             $newId = $this->connection->insert_id;
             $stmt->close();
             return $newId;
         }
-        
+
         if ($this->connection->errno === 1062) {
             throw new Exception("Email already exists. Please login instead.");
         }
-        
+
         $error = $stmt->error;
         $stmt->close();
         throw new Exception("Registration failed: " . $error);
     }
 
-    public function loginUser($email, $password) {
+    public function loginUser($email, $password)
+    {
         $stmt = $this->connection->prepare("SELECT * FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
@@ -457,22 +475,40 @@ class JobsDatabase {
         return false;
     }
 
-    public function getUserById($id) {
+    public function getUserById($id)
+    {
         $stmt = $this->connection->prepare("SELECT id, name, email, details, profile_photo, cv_path FROM users WHERE id = ?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc();
     }
 
-    public function updateUserInfo($id, $data) {
+    public function updateUserInfo($id, $data)
+    {
         $fields = [];
         $types = "";
         $values = [];
 
-        if (isset($data['name'])) { $fields[] = "name = ?"; $types .= "s"; $values[] = $data['name']; }
-        if (isset($data['details'])) { $fields[] = "details = ?"; $types .= "s"; $values[] = $data['details']; }
-        if (isset($data['profile_photo'])) { $fields[] = "profile_photo = ?"; $types .= "s"; $values[] = $data['profile_photo']; }
-        if (isset($data['cv_path'])) { $fields[] = "cv_path = ?"; $types .= "s"; $values[] = $data['cv_path']; }
+        if (isset($data['name'])) {
+            $fields[] = "name = ?";
+            $types .= "s";
+            $values[] = $data['name'];
+        }
+        if (isset($data['details'])) {
+            $fields[] = "details = ?";
+            $types .= "s";
+            $values[] = $data['details'];
+        }
+        if (isset($data['profile_photo'])) {
+            $fields[] = "profile_photo = ?";
+            $types .= "s";
+            $values[] = $data['profile_photo'];
+        }
+        if (isset($data['cv_path'])) {
+            $fields[] = "cv_path = ?";
+            $types .= "s";
+            $values[] = $data['cv_path'];
+        }
 
         if (empty($fields)) return true;
 
@@ -489,41 +525,75 @@ class JobsDatabase {
      * save job logic
      */
 
-    public function saveJobForUser($userId, $jobId) {
+    public function saveJobForUser($userId, $jobId)
+    {
         $stmt = $this->connection->prepare("INSERT IGNORE INTO saved_jobs (user_id, job_id) VALUES (?, ?)");
         $stmt->bind_param("ii", $userId, $jobId);
         return $stmt->execute();
     }
 
-    public function unsaveJob($userId, $jobId) {
+    public function unsaveJob($userId, $jobId)
+    {
         $stmt = $this->connection->prepare("DELETE FROM saved_jobs WHERE user_id = ? AND job_id = ?");
         $stmt->bind_param("ii", $userId, $jobId);
         return $stmt->execute();
     }
 
     public function getSavedJobs($userId) {
-        $stmt = $this->connection->prepare("
-            SELECT j.*, c.name as category_name FROM jobs j 
-            LEFT JOIN categories c ON j.category_id = c.id
-            JOIN saved_jobs sj ON j.id = sj.job_id 
-            WHERE sj.user_id = ?
-            ORDER BY j.created_at DESC
-        ");
+        $query = "
+        SELECT j.* 
+        FROM jobs j 
+        INNER JOIN saved_jobs sj ON j.id = sj.job_id 
+        WHERE sj.user_id = ?
+        ORDER BY sj.created_at DESC
+    ";
+
+        $stmt = $this->connection->prepare($query);
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $this->connection->error);
+        }
+
         $stmt->bind_param("i", $userId);
         $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
 
-    public function isJobSaved($userId, $jobId) {
+    public function isJobSaved($userId, $jobId)
+    {
         $stmt = $this->connection->prepare("SELECT 1 FROM saved_jobs WHERE user_id = ? AND job_id = ?");
         $stmt->bind_param("ii", $userId, $jobId);
         $stmt->execute();
         return $stmt->get_result()->num_rows > 0;
     }
 
-    public function getCategories() {
+    public function getCategories()
+    {
         $result = $this->connection->query("SELECT * FROM categories ORDER BY name ASC");
         return $result->fetch_all(MYSQLI_ASSOC);
+    }
+
+    public function getUserSavedJobs($userId, $limit = 20, $offset = 0) {
+        $query = "
+        SELECT j.* 
+        FROM jobs j 
+        INNER JOIN saved_jobs sj ON j.id = sj.job_id 
+        WHERE sj.user_id = ? 
+        ORDER BY sj.id DESC 
+        LIMIT ? OFFSET ?
+    ";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bind_param("iii", $userId, $limit, $offset);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+    public function getUserSavedJobsCount($userId)
+    {
+        $stmt = $this->connection->prepare("SELECT COUNT(*) as total FROM saved_jobs WHERE user_id = ?");
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_assoc();
+        return $result['total'] ?? 0;
     }
 }
 // Usage: $db = new JobsDatabase();

@@ -5,6 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 $isLoggedIn = !empty($_SESSION['user_id']);
 $userName = $_SESSION['user_name'] ?? '';
 ?>
+
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
 
 <nav class="top-nav">
@@ -19,6 +20,10 @@ $userName = $_SESSION['user_name'] ?? '';
                     Explore
                 </a>
                 <?php if ($isLoggedIn): ?>
+                    <a class="menu-link <?php echo ($_GET['view'] ?? '') === 'saved' ? 'active' : ''; ?>" href="index.php?view=saved">
+                        <!--                        <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 4px;">favorite</span>-->
+                        Saved
+                    </a>
                     <a class="menu-link <?php echo basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active' : ''; ?>" href="profile.php">
                         Dashboard
                     </a>
@@ -26,7 +31,7 @@ $userName = $_SESSION['user_name'] ?? '';
                 <a class="menu-link" href="#" onclick="showTestEndpoints()">Test Endpoints</a>
             </div>
         </div>
-        
+
         <div class="account-controls">
             <?php if ($isLoggedIn): ?>
                 <div class="user-pill" style="background: var(--primary-soft); padding: 6px 16px; border-radius: 99px; display: flex; align-items: center; gap: 10px;">
@@ -44,20 +49,20 @@ $userName = $_SESSION['user_name'] ?? '';
 </nav>
 
 <script>
-function showTestEndpoints() {
-    window.location.href = 'test_sources.php';
-}
+    function showTestEndpoints() {
+        window.location.href = 'test_sources.php';
+    }
 
-async function logout() {
-    try {
-        const res = await fetch('API_Ops.php?action=logout');
-        const data = await res.json();
-        if (data.success) {
+    async function logout() {
+        try {
+            const res = await fetch('API_Ops.php?action=logout');
+            const data = await res.json();
+            if (data.success) {
+                window.location.href = 'index.php';
+            }
+        } catch (e) {
+            console.error('Logout failed', e);
             window.location.href = 'index.php';
         }
-    } catch (e) {
-        console.error('Logout failed', e);
-        window.location.href = 'index.php';
     }
-}
 </script>
