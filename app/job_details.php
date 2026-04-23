@@ -1,6 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Details | Jobbly</title>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="bg-surface">
 <?php
-require_once 'header.php';
 require_once 'DB_Ops.php';
+require_once 'header.php';
 
 $jobId = $_GET['id'] ?? null;
 if (!$jobId) {
@@ -28,11 +42,14 @@ if (($job['salary_min'] ?? 0) > 0 || ($job['salary_max'] ?? 0) > 0) {
     $currency = $job['currency'] ?? 'USD';
     $salary = $currency . " " . number_format($job['salary_min']) . " - " . number_format($job['salary_max']);
 }
+
+// Ensure apply_url exists (fallback to external_id or source link if needed)
+$applyUrl = $job['apply_url'] ?? '#';
 ?>
 
 <main class="main-layout">
     <section class="job-details-hero">
-        <div class="job-row" style="background: none; border: none; padding: 0;">
+        <div class="job-row" style="background: none; border: none; padding: 0; box-shadow: none;">
             <div class="job-main">
                 <div class="job-logo" style="width: 80px; height: 80px; font-size: 2rem;"><?php echo $companyLogo; ?></div>
                 <div>
@@ -49,7 +66,7 @@ if (($job['salary_min'] ?? 0) > 0 || ($job['salary_max'] ?? 0) > 0) {
                 <button class="save-btn <?php echo $isSaved ? 'saved' : ''; ?>" onclick="toggleSavePost(<?php echo $job['id']; ?>, this)">
                     <span class="material-symbols-outlined">favorite</span>
                 </button>
-                <a href="<?php echo htmlspecialchars($job['apply_url'] ?: '#'); ?>" target="_blank" class="search-btn">Apply Now</a>
+                <a href="<?php echo htmlspecialchars($applyUrl); ?>" target="_blank" class="search-btn">Apply Now</a>
             </div>
         </div>
     </section>
@@ -57,8 +74,15 @@ if (($job['salary_min'] ?? 0) > 0 || ($job['salary_max'] ?? 0) > 0) {
     <section class="job-description-section" style="margin-top: 40px;">
         <div class="job-row" style="flex-direction: column; align-items: start; gap: 20px;">
             <h2 style="color: var(--primary);">Job Description</h2>
-            <div class="job-description-content" style="line-height: 1.8; color: var(--text-muted);">
-                <?php echo nl2br(htmlspecialchars($job['description'])); ?>
+            <div class="job-description-content" style="line-height: 1.8; color: var(--text-muted); width: 100%;">
+                <?php 
+                // Detect if description is HTML or plain text
+                if (strip_tags($job['description']) !== $job['description']) {
+                    echo $job['description']; // It has HTML tags, render as is
+                } else {
+                    echo nl2br(htmlspecialchars($job['description']));
+                }
+                ?>
             </div>
         </div>
     </section>
