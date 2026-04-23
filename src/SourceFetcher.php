@@ -443,11 +443,17 @@ class SourceFetcher {
 
         $result['job_count'] = count($jobs);
 
-        // Extract sample job (first valid result)
+        // Extract all jobs and sample job
         if (!empty($jobs) && is_array($jobs)) {
-            $first_job = reset($jobs);
-            if (is_array($first_job)) {
-                $result['sample_job'] = $this->extract_job_summary($first_job, $source);
+            $result['all_jobs'] = [];
+            foreach ($jobs as $job) {
+                if (is_array($job)) {
+                    $summary = $this->extract_job_summary($job, $source);
+                    $result['all_jobs'][] = $summary;
+                }
+            }
+            if (!empty($result['all_jobs'])) {
+                $result['sample_job'] = $result['all_jobs'][0];
             }
         }
 
@@ -503,14 +509,19 @@ class SourceFetcher {
 
             $items = $xml->channel->item ?? $xml->item ?? [];
             $result['job_count'] = count($items);
+            $result['all_jobs'] = [];
 
             if (!empty($items)) {
-                $first_item = $items[0];
-                $result['sample_job'] = [
-                    'title' => (string)($first_item->title ?? 'Unknown'),
-                    'company' => (string)($first_item->author ?? 'Unknown'),
-                    'link' => (string)($first_item->link ?? '#')
-                ];
+                foreach ($items as $item) {
+                   $jobSummary = [
+                        'title' => (string)($item->title ?? 'Unknown'),
+                        'company' => (string)($item->author ?? 'Unknown'),
+                        'link' => (string)($item->link ?? '#'),
+                        'id' => (string)($item->guid ?? $item->link ?? md5((string)$item->title))
+                    ];
+                    $result['all_jobs'][] = $jobSummary;
+                }
+                $result['sample_job'] = $result['all_jobs'][0] ?? null;
             }
         } catch (Exception $e) {
             $result['error'] = $e->getMessage();

@@ -1,233 +1,166 @@
-// **================================================**
-// ** File: main.js                                  **
-// ** Responsibility: Main application logic         **
-// ** - Load and display jobs                        **
-// ** - Handle form submissions (Create/Update)      **
-// ** - Handle search and filtering                  **
-// ** - Handle delete operations                     **
-// **================================================**
+const API_URL = 'API_Ops.php';
 
-// Store current job being edited
-let currentEditId = null;
-
-// Initialize the application when DOM is loaded
-document.addEventListener('DOMContentLoaded', function () {
-    console.log('DOM loaded, calling loadJobs()');
-    loadJobs();
+document.addEventListener('DOMContentLoaded', () => {
+    bindEvents();
+    toggleLoader(true);
+    loadJobs().finally(() => toggleLoader(false));
+    
+    // Sync new jobs from APIs in the background
+    syncFetchedJobsToDatabase().then(() => {
+        console.log('Background sync complete, refreshing jobs...');
+        loadJobs();
+    });
 });
 
-/**
- * Load and display all jobs
- */
-async function loadJobs() {
-    const jobsContainer = document.getElementById('jobsContainer');
-    jobsContainer.innerHTML = '<p class="loading">Loading jobs...</p>';
+function bindEvents() {
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
 
-    console.log('Fetching jobs from API...');
-    const jobs = await fetchJobs();
-    console.log('Jobs received:', jobs);
-
-    if (jobs.length === 0) {
-        jobsContainer.innerHTML = `
-            <div class="empty-state">
-                <h3>No jobs found</h3>
-                <p>Add a new job using the form above to get started.</p>
-            </div>
-        `;
-        return;
-    }
-
-    jobsContainer.innerHTML = '';
-    jobs.forEach(job => {
-        const jobCard = createJobCard(job);
-        jobsContainer.appendChild(jobCard);
-    });
-}
-
-
-/**
- * fetch jobs
- */
-async function fetchJobs(filters = {}) {
-    try {
-        const res = await fetch('/jobbly/src/fetch_sources.php');
-
-        if (!res.ok) {
-            throw new Error("HTTP error " + res.status);
-        }
-
-        const data = await res.json();
-
-        console.log("API response:", data);
-
-        const jobs = [];
-
-        data.results.forEach(source => {
-            if (source.sample_job) {
-                jobs.push({
-                    id: source.source_id,
-                    title: source.sample_job.title,
-                    company: source.sample_job.company,
-                    location: source.sample_job.location,
-                    jobType: source.sample_job.job_type || "N/A",
-                    description: "",
-                    salary: "",
-                    apply_url: source.sample_job.apply_url || source.sample_job.link
-                });
+    if (searchInput) {
+        searchInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                searchJobs();
             }
         });
+    }
 
-        return jobs;
-
-    } catch (error) {
-        console.error("Error fetching jobs:", error);
-        return [];
+    if (searchBtn) {
+        searchBtn.addEventListener('click', searchJobs);
     }
 }
 
-/**
- * Reset search and reload all jobs
- */
-async function resetSearch() {
-    document.getElementById('searchInput').value = '';
-    await loadJobs();
+function toggleLoader(show) {
+    const loader = document.getElementById('loader');
+    if (loader) loader.style.display = show ? 'flex' : 'none';
 }
 
-/**
- * Escape HTML to prevent XSS
- */
-function escapeHtml(text) {
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, m => map[m]);
-}
+async function loadJobs(search = '') {
+    const container = document.getElementById('jobsContainer');
+    if (search) toggleLoader(true);
 
-/**
- * Show jobs page
- */
-function showJobsPage() {
-    console.log('Showing jobs page...');
-
-    // Hide all other containers
-    document.getElementById('testEndpointsContainer').style.display = 'none';
-    document.getElementById('testDetailsContainer').style.display = 'none';
-
-    // Show jobs page
-    const jobsPage = document.getElementById('jobsPage');
-    if (jobsPage) {
-        jobsPage.style.display = 'block';
-    }
-
-    // Load jobs
-    loadJobs();
-}
-
-
-/**
- * create card
- */
-function createJobCard(job) {
-    const card = document.createElement("div");
-    card.className = "job-card";
-
-    card.innerHTML = `
-        <h3>${job.title}</h3>
-        <p class="company">${job.company}</p>
-
-        <div class="meta">
-            <span class="meta-item">📍 ${job.location}</span>
-            <span class="meta-item">💼 ${job.jobType}</span>
-        </div>
-
-        <p class="description">${job.description?.substring(0, 120) ?? ""}...</p>
-
-        ${job.salary ? `<div class="salary">💰 ${job.salary}</div>` : ""}
-    `;
-
-    return card;
-}
-
-/**
- * header navigation to a specific section
- */
-function navigateTo(page) {
-    const homeSection = document.querySelector(".search-section");
-    const jobsSection = document.querySelector(".display-section");
-    const aboutSection = document.getElementById("aboutSection");
-
-    setActivePage(page);
-
-    if (page === "home") {
-        homeSection.style.display = "block";
-        jobsSection.style.display = "block";
-        aboutSection.style.display = "none";
-
-        loadJobs();
-    }
-
-    if (page === "about") {
-        homeSection.style.display = "none";
-        jobsSection.style.display = "none";
-        aboutSection.style.display = "flex";
-    }
-
-    if (page === "saved") {
-        homeSection.style.display = "none";
-        jobsSection.style.display = "block";
-        aboutSection.style.display = "none";
-    }
-
-    if (page === "profile") {
-        homeSection.style.display = "none";
-        jobsSection.style.display = "none";
-        aboutSection.style.display = "none";
-    }
-}
-
-/**
- * setting the current active page
- */
-function setActivePage(page) {
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.classList.remove('active');
-
-        if (link.dataset.page === page) {
-            link.classList.add('active');
-        }
-    });
-}
-
-/**
- * initial active page is the 'home page'
- */
-document.addEventListener("DOMContentLoaded", () => {
-    setActivePage("home");
-});
-
-/**
- * Search
- */
-async function searchJobs() {
-    const value = document.getElementById("searchInput").value;
-
-    const jobs = await fetchJobs({ search: value });
-
-    const container = document.getElementById("jobsContainer");
+    const jobs = await fetchJobs(search);
+    if (search) toggleLoader(false);
 
     if (!jobs.length) {
         container.innerHTML = `
             <div class="empty-state">
-                <h3>No results found</h3>
+                <h3>No saved jobs found</h3>
+                <p>Try searching with a different keyword.</p>
             </div>
         `;
         return;
     }
 
-    container.innerHTML = "";
-    jobs.forEach(job => container.appendChild(createJobCard(job)));
+    container.innerHTML = '';
+    jobs.forEach((job) => container.appendChild(createJobCard(job)));
+}
+
+async function fetchJobs(search = '') {
+    try {
+        const endpoint = search
+            ? `${API_URL}?action=read&search=${encodeURIComponent(search)}`
+            : `${API_URL}?action=read`;
+
+        const response = await fetch(endpoint);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const payload = await response.json();
+        if (!payload.success || !Array.isArray(payload.jobs)) {
+            return [];
+        }
+
+        return payload.jobs;
+    } catch (error) {
+        console.error('Error reading saved jobs:', error);
+        return [];
+    }
+}
+
+async function searchJobs() {
+    const searchInput = document.getElementById('searchInput');
+    const value = searchInput ? searchInput.value.trim() : '';
+    await loadJobs(value);
+}
+
+function createJobCard(job) {
+    const card = document.createElement('article');
+    card.className = 'job-row group';
+
+    const safeTitle = escapeHtml(job.title || 'Untitled Role');
+    const safeCompany = escapeHtml(job.company || 'Unknown Company');
+    const safeLocation = escapeHtml(job.location || 'Unknown');
+    const safeType = escapeHtml(job.jobType || 'N/A');
+    const safeSalary = escapeHtml(job.salary || 'N/A');
+
+    const isSaved = job.isSaved || false;
+
+    card.innerHTML = `
+        <div class="job-main">
+            <div class="job-logo">${safeCompany.charAt(0).toUpperCase()}</div>
+            <div>
+                <h3>${safeTitle}</h3>
+                <div class="job-meta">
+                    <span><span class="material-symbols-outlined">business</span>${safeCompany}</span>
+                    <span><span class="material-symbols-outlined">location_on</span>${safeLocation}</span>
+                    <span><span class="material-symbols-outlined">work</span>${safeType}</span>
+                </div>
+            </div>
+        </div>
+        <div class="job-side">
+            <span class="badge">${safeSalary}</span>
+            <button class="save-btn ${isSaved ? 'saved' : ''}" type="button" aria-label="save job">
+                <span class="material-symbols-outlined">favorite</span>
+            </button>
+            <button class="view-btn" type="button">View</button>
+        </div>
+    `;
+
+    const saveBtn = card.querySelector('.save-btn');
+    saveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleSaveJob(job.id, saveBtn);
+    });
+
+    return card;
+}
+
+async function toggleSaveJob(jobId, btn) {
+    const isCurrentlySaved = btn.classList.contains('saved');
+    const action = isCurrentlySaved ? 'unsave_job' : 'save_job';
+    
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, job_id: jobId })
+        });
+        const data = await response.json();
+        if (data.success) {
+            btn.classList.toggle('saved');
+        } else {
+            alert(data.message || 'Please login to save jobs');
+            if (data.message === 'Login required') window.location.href = 'login.php';
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function syncFetchedJobsToDatabase() {
+    try {
+        await fetch(`${API_URL}?action=sync`);
+    } catch (error) {
+        console.error('Background sync failed:', error);
+    }
+}
+
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }

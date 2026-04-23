@@ -51,18 +51,12 @@ class JobsDatabase {
         $types = "";
 
         if (!empty($search)) {
-            $query .= " AND (j.title LIKE ? OR j.company_name LIKE ? OR j.description LIKE ?)";
+            $query .= " AND (LOWER(j.title) LIKE LOWER(?) OR LOWER(j.company_name) LIKE LOWER(?) OR LOWER(j.description) LIKE LOWER(?))";
             $searchTerm = "%$search%";
             $params[] = $searchTerm;
             $params[] = $searchTerm;
             $params[] = $searchTerm;
             $types .= "sss";
-        }
-
-        if (!empty($category_id)) {
-            $query .= " AND j.category_id = ?";
-            $params[] = $category_id;
-            $types .= "i";
         }
 
         $query .= " ORDER BY j.created_at DESC";
@@ -306,14 +300,62 @@ class JobsDatabase {
     }
 
     public function getGuestUser() {
-        $result = $this->connection->query("SELECT * FROM users LIMIT 1");
+        $result = $this->connection->query("SELECT * FROM users ORDER BY id ASC LIMIT 1");
         $user = $result->fetch_assoc();
 
         if (!$user) {
-            $this->connection->query("INSERT INTO users (name, details) VALUES ('Guest User', 'Default guest profile')");
+            $this->connection->query("INSERT INTO users (name, email, password, details) VALUES ('Guest User', 'guest@example.com', 'password', 'Default guest profile')");
             return $this->getGuestUser();
         }
         return $user;
+    }
+
+    public function registerUser($name, $email, $password) {
+        $hashed = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $this->connection->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
+        $stmt->bind_param("sss", $name, $email, $hashed);
+        if ($stmt->execute()) {
+            return $this->connection->insert_id;
+        }
+        return false;
+    }
+
+    public function loginUser($email, $password) {
+        $stmt = $this->connection->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $user = $stmt->get_result()->fetch_assoc();
+        if ($user && password_verify($password, $user['password'])) {
+            return $user;
+        }
+        return false;
+    }
+
+    public function getUserById($id) {
+        $stmt = $this->connection->prepare("SELECT id, name, email, details, profile_photo, cv_path FROM users WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
+    }
+
+    public function updateUserInfo($id, $data) {
+        $fields = [];
+        $types = "";
+        $values = [];
+
+        if (isset($data['name'])) { $fields[] = "name = ?"; $types .= "s"; $values[] = $data['name']; }
+        if (isset($data['details'])) { $fields[] = "details = ?"; $types .= "s"; $values[] = $data['details']; }
+        if (isset($data['profile_photo'])) { $fields[] = "profile_photo = ?"; $types .= "s"; $values[] = $data['profile_photo']; }
+        if (isset($data['cv_path'])) { $fields[] = "cv_path = ?"; $types .= "s"; $values[] = $data['cv_path']; }
+
+        if (empty($fields)) return true;
+
+        $values[] = $id;
+        $types .= "i";
+        $sql = "UPDATE users SET " . implode(", ", $fields) . " WHERE id = ?";
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bind_param($types, ...$values);
+        return $stmt->execute();
     }
 
 
@@ -335,7 +377,8 @@ class JobsDatabase {
 
     public function getSavedJobs($userId) {
         $stmt = $this->connection->prepare("
-            SELECT j.* FROM jobs j 
+            SELECT j.*, c.name as category_name FROM jobs j 
+            LEFT JOIN categories c ON j.category_id = c.id
             JOIN saved_jobs sj ON j.id = sj.job_id 
             WHERE sj.user_id = ?
             ORDER BY j.created_at DESC
@@ -343,6 +386,13 @@ class JobsDatabase {
         $stmt->bind_param("i", $userId);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    public function isJobSaved($userId, $jobId) {
+        $stmt = $this->connection->prepare("SELECT 1 FROM saved_jobs WHERE user_id = ? AND job_id = ?");
+        $stmt->bind_param("ii", $userId, $jobId);
+        $stmt->execute();
+        return $stmt->get_result()->num_rows > 0;
     }
 
     public function getCategories() {

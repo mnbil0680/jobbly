@@ -1,106 +1,51 @@
-<?php
-
-// **================================================**
-// ** File: index.php                                **
-// ** Responsibility: Main SPA page                  **
-// ** - Include header.php                           **
-// ** - Search / Filter Section                      **
-// ** - Form Section (Create / Update)               **
-// ** - Display Section (Read)                       **
-// ** - Include footer.php                           **
-// ** - Link style.css                               **
-// ** - Link API_Ops.js                              **
-// ** - Link main.js                                 **
-// **================================================**
-
-require_once 'DB_Ops.php';
-$db = new JobsDatabase();
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jobbly | Careers</title>
 
     <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
-<body>
-<?php include 'header.php'; ?>
+<?php include_once 'header.php'; ?>
 
-<main class="container">
-
-    <!-- HOME PAGE  -->
-    <div id="homePage">
-
-        <!-- SEARCH -->
-        <section class="search-section">
-            <div class="search-card">
-
-                <h1 class="search-title">Find Your Dream Opportunity!</h1>
-
-                <div class="search-container">
-                    <div class="input-group">
+<main class="main-layout">
+    <section class="hero-section">
+        <div class="hero-card">
+            <div class="hero-content">
+                <h1>Search Roles</h1>
+                <div class="hero-search">
+                    <div class="hero-search-input">
                         <span class="material-symbols-outlined">search</span>
-
-                        <input type="text"
-                               id="searchInput"
-                               class="search-input"
-                               onkeyup="searchJobs()"
-                               placeholder="Job title or company...">
+                        <input id="searchInput" type="text" placeholder="Job title, keywords, or company...">
                     </div>
-
-                    <button class="btn btn-primary search-btn"
-                            onclick="searchJobs()">
-                        Search
-                    </button>
+                    <button id="searchBtn" class="search-btn">Search</button>
                 </div>
-
             </div>
-        </section>
-
-        <!-- JOBS -->
-        <section class="display-section">
-            <h2>Recent Listings</h2>
-            <div id="jobsContainer" class="jobs-container"></div>
-        </section>
-
-    </div>
-
-    <!-- ABOUT SECTION -->
-    <section id="aboutSection" class="about-section" style="display:none;">
-        <div class="about-grid">
-            <div class="about-card">
-                <h3>About Jobbly</h3>
-                <p>
-                    Jobbly is a modern job search platform designed to simplify how people find career opportunities
-                    in one place.
-                </p>
-            </div>
-            <div class="about-card">
-                <h3>What it helps you do</h3>
-                <p>
-                    You can search jobs instantly, browse structured listings, and save time by using a fast
-                    single-page experience without reloads.
-                </p>
-            </div>
-            <div class="about-card">
-                <h3>Why Jobbly</h3>
-                <p>
-                    Instead of visiting multiple job sites, Jobbly brings everything together in one clean,
-                    simple, and efficient interface.
-                </p>
-            </div>
+            <div class="hero-glow"></div>
         </div>
+    </section>
+
+    <section>
+        <div class="section-head">
+            <h2>Recent Listings</h2>
+        </div>
+        <div id="loader" class="loader-container" style="display: none;">
+            <div class="spinner"></div>
+            <p>Fetching the best jobs for you...</p>
+        </div>
+        <div id="jobsContainer" class="jobs-list"></div>
     </section>
 </main>
 
-<?php include 'footer.php'; ?>
+<?php include_once 'footer.php'; ?>
 
-<script src="assets/js/main.js"></script>
+    <script src="assets/js/main.js"></script>
 
 </body>
 </html>
