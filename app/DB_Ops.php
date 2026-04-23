@@ -132,21 +132,29 @@ class JobsDatabase {
     }
 
     // ceateJob api version
+    private $selectStmt = null;
+    private $insertStmt = null;
+
     public function cacheApiJob($jobData) {
+        if (!$this->selectStmt) {
+            $this->selectStmt = $this->connection->prepare("SELECT id FROM jobs WHERE poster_id = ?");
+        }
+        
         $poster_id = $jobData['source_api'] . "_" . $jobData['external_id'];
-        $stmt = $this->connection->prepare("SELECT id FROM jobs WHERE poster_id = ?");
-        $stmt->bind_param("s", $poster_id);
-        $stmt->execute();
-        $existing = $stmt->get_result()->fetch_assoc();
+        $this->selectStmt->bind_param("s", $poster_id);
+        $this->selectStmt->execute();
+        $existing = $this->selectStmt->get_result()->fetch_assoc();
         if ($existing) return $existing['id'];
 
-        $stmt = $this->connection->prepare(
-            "INSERT INTO jobs (company_name, poster_id, category_id, title, description, location, job_type, salary_min, salary_max, currency, status) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        );
+        if (!$this->insertStmt) {
+            $this->insertStmt = $this->connection->prepare(
+                "INSERT INTO jobs (company_name, poster_id, category_id, title, description, location, job_type, salary_min, salary_max, currency, status) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            );
+        }
 
         $status = 'open';
-        $stmt->bind_param(
+        $this->insertStmt->bind_param(
             "ssissssddss",
             $jobData['company_name'],
             $poster_id,
@@ -160,7 +168,11 @@ class JobsDatabase {
             $jobData['currency'],
             $status
         );
-        $stmt->execute();
+        
+        if (!$this->insertStmt->execute()) {
+            error_log("Failed to insert job: " . $this->insertStmt->error);
+            return false;
+        }
         return $this->connection->insert_id;
     }
 

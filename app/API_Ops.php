@@ -20,8 +20,19 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../src/SourceFetcher.php';
 require_once __DIR__ . '/../src/SourceTester.php';
 
-$requestData = json_decode(file_get_contents('php://input'), true) ?? [];
-$action = $_GET['action'] ?? $_POST['action'] ?? $requestData['action'] ?? null;
+// Get action from GET, POST, or JSON body
+$action = $_GET['action'] ?? $_POST['action'] ?? null;
+$requestData = [];
+
+if (file_get_contents('php://input')) {
+    $requestData = json_decode(file_get_contents('php://input'), true) ?? [];
+    if (!$action) $action = $requestData['action'] ?? null;
+}
+
+// Merge POST and GET into requestData if not JSON
+if (empty($requestData)) {
+    $requestData = array_merge($_GET, $_POST);
+}
 
 try {
     switch ($action) {
@@ -97,14 +108,22 @@ function handleRead() {
 }
 
 function handleSyncAndSave() {
+    // Release session lock so other pages can load while we fetch
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_write_close();
+    }
+
+    $sourceId = $_GET['source_id'] ?? $_POST['source_id'] ?? null;
     $config = getSourceConfig();
     $fetcher = new SourceFetcher($config);
-    $fetched = $fetcher->fetch_all();
+    
+    // Fetch specifically if source_id provided, otherwise all
+    $filter = $sourceId ? ['source_id' => $sourceId] : [];
+    $fetched = $fetcher->fetch_all($filter);
 
     $db = new JobsDatabase();
     $savedCount = 0;
-    $savedSources = [];
-    $failedSources = [];
+    $processedSources = [];
 
     foreach (($fetched['results'] ?? []) as $result) {
         if (($result['status'] ?? '') !== 'ok' || empty($result['all_jobs']) || !is_array($result['all_jobs'])) {
@@ -120,20 +139,18 @@ function handleSyncAndSave() {
             try {
                 $db->cacheApiJob($normalized);
                 $savedCount++;
-                $savedSources[] = $result['source_id'] ?? 'unknown';
+                $processedSources[] = $result['source_id'] ?? 'unknown';
             } catch (Exception $e) {
-                $failedSources[] = $result['source_id'] ?? 'unknown';
+                // Ignore single errors
             }
         }
     }
 
     echo json_encode([
         'success' => true,
-        'message' => 'Sources fetched and jobs saved to database.',
+        'message' => 'Sync complete',
         'saved_count' => $savedCount,
-        'saved_sources' => array_values(array_unique($savedSources)),
-        'failed_sources' => array_values(array_unique($failedSources)),
-        'fetch_summary' => $fetched['summary'] ?? []
+        'sources' => array_values(array_unique($processedSources))
     ]);
 }
 
@@ -279,11 +296,21 @@ function handleUpdateUser() {
 
 function handleSaveJob() {
     global $requestData;
-    if (empty($_SESSION['user_id'])) throw new Exception("Login required to save jobs");
+    if (empty($_SESSION['user_id'])) {
+        if (!empty($requestData['redirect'])) {
+            header('Location: login.php');
+            exit;
+        }
+        throw new Exception("Login required to save jobs");
+    }
     if (empty($requestData['job_id'])) throw new Exception("Job ID required");
     
     $db = new JobsDatabase();
     if ($db->saveJobForUser($_SESSION['user_id'], $requestData['job_id'])) {
+        if (!empty($requestData['redirect'])) {
+            header('Location: ' . $requestData['redirect']);
+            exit;
+        }
         echo json_encode(['success' => true]);
     } else {
         throw new Exception("Failed to save job");
@@ -292,11 +319,21 @@ function handleSaveJob() {
 
 function handleUnsaveJob() {
     global $requestData;
-    if (empty($_SESSION['user_id'])) throw new Exception("Login required");
+    if (empty($_SESSION['user_id'])) {
+        if (!empty($requestData['redirect'])) {
+            header('Location: login.php');
+            exit;
+        }
+        throw new Exception("Login required");
+    }
     if (empty($requestData['job_id'])) throw new Exception("Job ID required");
     
     $db = new JobsDatabase();
     if ($db->unsaveJob($_SESSION['user_id'], $requestData['job_id'])) {
+        if (!empty($requestData['redirect'])) {
+            header('Location: ' . $requestData['redirect']);
+            exit;
+        }
         echo json_encode(['success' => true]);
     } else {
         throw new Exception("Failed to unsave job");
