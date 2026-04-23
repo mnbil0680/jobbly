@@ -57,6 +57,30 @@ try {
         case 'logout':
             handleLogout();
             break;
+        case 'get_user':
+            handleGetUser();
+            break;
+        case 'update_user':
+            handleUpdateUser();
+            break;
+        case 'create_job':
+            handleCreate();
+            break;
+        case 'update_job':
+            handleUpdate();
+            break;
+        case 'delete_job':
+            handleDeleteJob();
+            break;
+        case 'change_password':
+            handleChangePassword();
+            break;
+        case 'change_email':
+            handleChangeEmail();
+            break;
+        case 'delete_user':
+            handleDeleteUser();
+            break;
         default:
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
@@ -223,6 +247,38 @@ function handleUpdate() {
     }
 }
 
+function handleDeleteJob() {
+    global $requestData;
+    try {
+        // Validate job ID
+        if (empty($requestData['id'])) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Job ID is required'
+            ]);
+            return;
+        }
+
+        // Create database instance and delete job
+        $db = new JobsDatabase();
+        $db->deleteJob($requestData['id']);
+
+        // Return success response
+        echo json_encode([
+            'success' => true,
+            'message' => 'Job deleted successfully'
+        ]);
+
+    } catch (Exception $e) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
 // --- AUTH HANDLERS ---
 
 function handleLogin() {
@@ -277,6 +333,95 @@ function handleUpdateUser() {
         echo json_encode(['success' => true]);
     } else {
         throw new Exception("Update failed");
+    }
+}
+
+function handleChangePassword() {
+    global $requestData;
+    if (empty($_SESSION['user_id'])) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Login required']);
+        return;
+    }
+    if (empty($requestData['current_password']) || empty($requestData['new_password'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Current password and new password are required']);
+        return;
+    }
+    if ($requestData['new_password'] !== ($requestData['confirm_password'] ?? '')) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'New passwords do not match']);
+        return;
+    }
+
+    try {
+        $db = new JobsDatabase();
+        $user = $db->getUserById($_SESSION['user_id']);
+        if (!$user) {
+            throw new Exception("User not found");
+        }
+        if (!password_verify($requestData['current_password'], $user['password'])) {
+            throw new Exception("Current password is incorrect");
+        }
+        $db->changePassword($_SESSION['user_id'], $requestData['new_password']);
+        echo json_encode(['success' => true, 'message' => 'Password changed successfully']);
+    } catch (Exception $e) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+function handleChangeEmail() {
+    global $requestData;
+    if (empty($_SESSION['user_id'])) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Login required']);
+        return;
+    }
+    if (empty($requestData['new_email']) || empty($requestData['password'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'New email and password are required']);
+        return;
+    }
+
+    try {
+        $db = new JobsDatabase();
+        $user = $db->getUserById($_SESSION['user_id']);
+        if (!$user) {
+            throw new Exception("User not found");
+        }
+        if (!password_verify($requestData['password'], $user['password'])) {
+            throw new Exception("Password is incorrect");
+        }
+        $db->changeEmail($_SESSION['user_id'], $requestData['new_email']);
+        echo json_encode(['success' => true, 'message' => 'Email changed successfully']);
+    } catch (Exception $e) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+function handleDeleteUser() {
+    global $requestData;
+    if (empty($_SESSION['user_id'])) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Login required']);
+        return;
+    }
+    if (empty($requestData['password'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Password is required to delete account']);
+        return;
+    }
+
+    try {
+        $db = new JobsDatabase();
+        $db->deleteUser($_SESSION['user_id'], $requestData['password']);
+        session_destroy();
+        echo json_encode(['success' => true, 'message' => 'Account deleted successfully']);
+    } catch (Exception $e) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
 

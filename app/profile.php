@@ -75,11 +75,11 @@ if (empty($_SESSION['user_id'])) {
                 document.getElementById('details').value = user.details || '';
                 document.getElementById('profileNameDisplay').innerText = user.name;
                 document.getElementById('profileEmailDisplay').innerText = user.email;
-                
+
                 if (user.profile_photo) {
                     document.getElementById('avatarDisplay').innerHTML = `<img src="${user.profile_photo}" alt="Avatar">`;
                 }
-                
+
                 if (user.cv_path) {
                     document.getElementById('cvStatus').innerText = '✓ CV Uploaded';
                 }
@@ -112,7 +112,7 @@ if (empty($_SESSION['user_id'])) {
                 const formData = new FormData();
                 formData.append('file', file);
                 formData.append('type', type);
-                
+
                 try {
                     const res = await fetch('Upload.php', {
                         method: 'POST',
