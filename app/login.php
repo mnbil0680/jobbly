@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body class="bg-surface">
     <?php include 'header.php'; ?>
@@ -15,6 +15,7 @@
     <main class="main-layout">
         <div class="auth-container">
             <h2>Welcome Back</h2>
+            <p class="auth-subtitle">Sign in to access your saved jobs and profile.</p>
             <form id="loginForm">
                 <div class="form-group">
                     <label for="email">Email Address</label>
@@ -48,13 +49,15 @@
                 if (data.success) {
                     window.location.href = 'index.php';
                 } else {
-                    alert(data.message || 'Login failed');
+                    showToast(data.message || 'Invalid email or password.', 'error');
                 }
             } catch (err) {
                 console.error(err);
-                alert('An error occurred');
+                showToast('An error occurred. Please try again.', 'error');
             }
         });
     </script>
+<script src="assets/js/main.js"></script>
 </body>
 </html>
+

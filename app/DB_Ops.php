@@ -520,6 +520,91 @@ class JobsDatabase
         return $stmt->execute();
     }
 
+    public function changePassword($userId, $newPassword)
+    {
+        $hashed = password_hash($newPassword, PASSWORD_DEFAULT);
+        $stmt = $this->connection->prepare("UPDATE users SET password = ? WHERE id = ?");
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $this->connection->error);
+        }
+        $stmt->bind_param("si", $hashed, $userId);
+        if (!$stmt->execute()) {
+            throw new Exception("Password update failed: " . $stmt->error);
+        }
+        $stmt->close();
+        return true;
+    }
+
+    public function changeEmail($userId, $newEmail)
+    {
+        // Check if email already exists
+        $checkStmt = $this->connection->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
+        if (!$checkStmt) {
+            throw new Exception("Prepare failed: " . $this->connection->error);
+        }
+        $checkStmt->bind_param("si", $newEmail, $userId);
+        $checkStmt->execute();
+        if ($checkStmt->get_result()->num_rows > 0) {
+            throw new Exception("Email already in use");
+        }
+        $checkStmt->close();
+
+        // Update email
+        $stmt = $this->connection->prepare("UPDATE users SET email = ? WHERE id = ?");
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $this->connection->error);
+        }
+        $stmt->bind_param("si", $newEmail, $userId);
+        if (!$stmt->execute()) {
+            throw new Exception("Email update failed: " . $stmt->error);
+        }
+        $stmt->close();
+        return true;
+    }
+
+    public function deleteUser($userId, $password)
+    {
+        // Get user and verify password
+        $stmt = $this->connection->prepare("SELECT password FROM users WHERE id = ?");
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $this->connection->error);
+        }
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (!$result) {
+            throw new Exception("User not found");
+        }
+
+        if (!password_verify($password, $result['password'])) {
+            throw new Exception("Incorrect password");
+        }
+
+        // Delete saved_jobs entries for this user
+        $deleteJobsStmt = $this->connection->prepare("DELETE FROM saved_jobs WHERE user_id = ?");
+        if (!$deleteJobsStmt) {
+            throw new Exception("Prepare failed: " . $this->connection->error);
+        }
+        $deleteJobsStmt->bind_param("i", $userId);
+        if (!$deleteJobsStmt->execute()) {
+            throw new Exception("Failed to delete saved jobs: " . $deleteJobsStmt->error);
+        }
+        $deleteJobsStmt->close();
+
+        // Delete user
+        $deleteUserStmt = $this->connection->prepare("DELETE FROM users WHERE id = ?");
+        if (!$deleteUserStmt) {
+            throw new Exception("Prepare failed: " . $this->connection->error);
+        }
+        $deleteUserStmt->bind_param("i", $userId);
+        if (!$deleteUserStmt->execute()) {
+            throw new Exception("Failed to delete user: " . $deleteUserStmt->error);
+        }
+        $deleteUserStmt->close();
+        return true;
+    }
 
     /**
      * save job logic
