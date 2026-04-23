@@ -10,7 +10,7 @@
 // ===== DATABASE CONFIGURATION =====
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_PASS', 'mohamednabil@012');
 define('DB_NAME', 'jobbly');
 
 // ===== JOB SOURCE API KEYS =====
