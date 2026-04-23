@@ -135,6 +135,7 @@ class SourceFetcher {
             }
 
             $result['job_count'] = $parsed['job_count'];
+            $result['all_jobs'] = $parsed['all_jobs'] ?? [];
             $result['sample_job'] = $parsed['sample_job'];
             $result['status'] = 'ok';
 
@@ -341,24 +342,43 @@ class SourceFetcher {
         }
 
         $xpath = new DOMXPath($dom);
-        $cards = $xpath->query('//div[contains(@class, "base-search-card") or contains(@class, "job-search-card") or contains(@class, "base-card")]');
+        $cards = $xpath->query('//*[contains(@class, "base-search-card") or contains(@class, "job-search-card") or contains(@class, "base-card")]');
         $result['job_count'] = $cards ? $cards->length : 0;
+        $result['all_jobs'] = [];
 
         if ($cards && $cards->length > 0) {
-            $first = $cards->item(0);
+            foreach ($cards as $card) {
+                $title = trim($xpath->evaluate('string(.//h3[contains(@class, "base-search-card__title")])', $card));
+                $company = trim($xpath->evaluate('string(.//h4[contains(@class, "base-search-card__subtitle")])', $card));
+                $location = trim($xpath->evaluate('string(.//span[contains(@class, "job-search-card__location")])', $card));
+                $applyUrl = trim($xpath->evaluate('string(.//a[contains(@class, "base-card__full-link")]/@href)', $card));
+                
+                // For LinkedIn guest API, the applyUrl is often a redirect or the jobId is in the URL
+                $jobId = 'N/A';
+                if (preg_match('/-([0-9]{10,})/', $applyUrl, $matches)) {
+                    $jobId = $matches[1];
+                }
 
-            $title = trim($xpath->evaluate('string(.//h3[contains(@class, "base-search-card__title")])', $first));
-            $company = trim($xpath->evaluate('string(.//h4[contains(@class, "base-search-card__subtitle")])', $first));
-            $location = trim($xpath->evaluate('string(.//span[contains(@class, "job-search-card__location")])', $first));
-            $applyUrl = trim($xpath->evaluate('string(.//a[contains(@class, "base-card__full-link")]/@href)', $first));
-
-            $result['sample_job'] = [
-                'title' => $title !== '' ? $title : 'Unknown',
-                'company' => $company !== '' ? $company : 'Unknown',
-                'location' => $location !== '' ? $location : 'Unknown',
-                'apply_url' => $applyUrl !== '' ? $applyUrl : 'N/A',
-                'id' => $applyUrl !== '' ? $applyUrl : 'N/A'
-            ];
+                $jobData = [
+                    'title' => $title !== '' ? $title : 'Unknown',
+                    'company_name' => $company !== '' ? $company : 'Unknown',
+                    'location' => $location !== '' ? $location : 'Unknown',
+                    'apply_url' => $applyUrl !== '' ? $applyUrl : '#',
+                    'poster_id' => 'linkedin_' . ($jobId !== 'N/A' ? $jobId : md5($title . $company)),
+                    'category_id' => 1, // Will be re-mapped by normalize_for_db logic if called
+                    'description' => '',
+                    'job_type' => 'Full-time',
+                    'salary_min' => 0,
+                    'salary_max' => 0,
+                    'currency' => 'USD'
+                ];
+                
+                $result['all_jobs'][] = $jobData;
+            }
+            
+            if (!empty($result['all_jobs'])) {
+                $result['sample_job'] = $result['all_jobs'][0];
+            }
         }
 
         return $result;
@@ -448,8 +468,7 @@ class SourceFetcher {
             $result['all_jobs'] = [];
             foreach ($jobs as $job) {
                 if (is_array($job)) {
-                    $summary = $this->extract_job_summary($job, $source);
-                    $result['all_jobs'][] = $summary;
+                    $result['all_jobs'][] = $this->normalize_for_db($job, $source);
                 }
             }
             if (!empty($result['all_jobs'])) {
@@ -473,12 +492,12 @@ class SourceFetcher {
         }
 
         $job_id_field = $source['job_id_field'] ?? '';
-        if (!empty($job_id_field) && array_key_exists($job_id_field, $item)) {
+        if (!empty($job_id_field) && $this->get_nested_value($item, $job_id_field) !== null) {
             return true;
         }
 
         foreach (($source['sample_fields'] ?? []) as $mapped_field) {
-            if (!empty($mapped_field) && array_key_exists($mapped_field, $item)) {
+            if (!empty($mapped_field) && $this->get_nested_value($item, $mapped_field) !== null) {
                 return true;
             }
         }
@@ -513,13 +532,16 @@ class SourceFetcher {
 
             if (!empty($items)) {
                 foreach ($items as $item) {
-                   $jobSummary = [
+                   $jobData = [
                         'title' => (string)($item->title ?? 'Unknown'),
-                        'company' => (string)($item->author ?? 'Unknown'),
-                        'link' => (string)($item->link ?? '#'),
-                        'id' => (string)($item->guid ?? $item->link ?? md5((string)$item->title))
+                        'company_name' => (string)($item->author ?? 'Unknown'),
+                        'apply_url' => (string)($item->link ?? '#'),
+                        'poster_id' => $source['id'] . "_" . (string)($item->guid ?? $item->link ?? md5((string)$item->title)),
+                        'description' => (string)($item->description ?? ''),
+                        'location' => 'Remote',
+                        'job_type' => 'Full-time'
                     ];
-                    $result['all_jobs'][] = $jobSummary;
+                    $result['all_jobs'][] = $jobData;
                 }
                 $result['sample_job'] = $result['all_jobs'][0] ?? null;
             }
@@ -531,6 +553,111 @@ class SourceFetcher {
     }
 
     /**
+     * Helper to ensure a value is a string, converting arrays/objects if needed
+     */
+    private function ensure_string($value) {
+        if (is_string($value)) return $value;
+        if (is_array($value)) {
+            if (empty($value)) return '';
+            // If it's an associative array, JSON encode it. If sequential, implode.
+            if (array_keys($value) !== range(0, count($value) - 1)) {
+                return json_encode($value);
+            }
+            return implode(', ', $value);
+        }
+        if (is_object($value)) return json_encode($value);
+        if ($value === null) return '';
+        return (string)$value;
+    }
+
+    /**
+     * Helper to get a nested value from an array using dot notation or array syntax
+     */
+    private function get_nested_value($array, $path) {
+        if (empty($path)) return null;
+        
+        // Handle array syntax like locations[0].name
+        $path = preg_replace('/\[(\d+)\]/', '.$1', $path);
+        $parts = explode('.', $path);
+        
+        $current = $array;
+        foreach ($parts as $part) {
+            if (is_array($current) && isset($current[$part])) {
+                $current = $current[$part];
+            } else {
+                return null;
+            }
+        }
+        return $current;
+    }
+
+    /**
+     * Normalize a raw job object into database-ready format
+     * 
+     * @param array $job Raw job data
+     * @param array $source Source definition
+     * @return array Normalized job
+     */
+    public function normalize_for_db($job, $source) {
+        $normalized = [
+            'company_name' => 'Unknown',
+            'poster_id' => null,
+            'category_id' => 1, // Default
+            'title' => 'Untitled Job',
+            'description' => '',
+            'location' => 'Unknown',
+            'job_type' => 'Full-time',
+            'salary_min' => 0,
+            'salary_max' => 0,
+            'currency' => 'USD',
+            'apply_url' => ''
+        ];
+
+        $field_map = $source['sample_fields'] ?? [];
+        
+        // Map fields based on source definition
+        foreach($field_map as $key => $path) {
+            $value = $this->get_nested_value($job, $path);
+            if ($value !== null) {
+                if ($key === 'salary_min' || $key === 'salary_max') {
+                    $normalized[$key] = $value;
+                } elseif ($key === 'company') {
+                    $normalized['company_name'] = $this->ensure_string($value);
+                } else {
+                    $normalized[$key] = $this->ensure_string($value);
+                }
+            }
+        }
+
+        // Handle description (might be 'description' or 'body' or 'snippet')
+        $desc_fields = ['description', 'description_html', 'body', 'snippet', 'job_description'];
+        foreach($desc_fields as $df) {
+            if (isset($job[$df]) && !empty($job[$df])) {
+                $normalized['description'] = $this->ensure_string($job[$df]);
+                break;
+            }
+        }
+
+        // Generate poster_id
+        $external_id = $this->get_nested_value($job, $source['job_id_field'] ?? '') ?? md5($normalized['title'] . $normalized['company_name']);
+        $normalized['poster_id'] = $source['id'] . "_" . $external_id;
+
+        // Simple Category Mapping
+        $title_lower = strtolower($normalized['title']);
+        if (strpos($title_lower, 'market') !== false || strpos($title_lower, 'seo') !== false) {
+            $normalized['category_id'] = 2; // Marketing
+        } elseif (strpos($title_lower, 'health') !== false || strpos($title_lower, 'nurse') !== false || strpos($title_lower, 'doctor') !== false) {
+            $normalized['category_id'] = 3; // Healthcare
+        } elseif (strpos($title_lower, 'sale') !== false || strpos($title_lower, 'account manager') !== false) {
+            $normalized['category_id'] = 4; // Sales
+        } else {
+            $normalized['category_id'] = 1; // Default: Software Engineering
+        }
+
+        return $normalized;
+    }
+
+    /**
      * Extract job summary from raw job object
      * 
      * @param array $job Raw job data
@@ -538,35 +665,11 @@ class SourceFetcher {
      * @return array Job summary with title, company, location
      */
     private function extract_job_summary($job, $source) {
-        $summary = [
-            'title' => 'Unknown',
-            'company' => 'Unknown',
-            'location' => 'Unknown',
-            'id' => $job[$source['job_id_field']] ?? 'N/A'
-        ];
-
-        $field_map = $source['sample_fields'] ?? [];
-        foreach ($field_map as $summary_key => $job_key) {
-            if (isset($job[$job_key])) {
-                $value = $job[$job_key];
-
-                // Convert arrays/objects to readable strings for UI display.
-                if (is_array($value)) {
-                    if (empty($value)) {
-                        $value = 'N/A';
-                    } else {
-                        $scalar_values = array_values(array_filter($value, function ($item) {
-                            return is_scalar($item);
-                        }));
-                        $value = !empty($scalar_values) ? implode(', ', $scalar_values) : json_encode($value);
-                    }
-                } elseif (is_object($value)) {
-                    $value = json_encode($value);
-                }
-
-                $summary[$summary_key] = (string)$value;
-            }
-        }
+        $summary = $this->normalize_for_db($job, $source);
+        
+        // Adapt for UI display
+        $summary['company'] = $summary['company_name'];
+        $summary['id'] = $summary['poster_id'];
 
         // Limit string lengths for display
         $summary['title'] = substr($summary['title'], 0, 60);

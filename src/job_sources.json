@@ -267,8 +267,8 @@
     "job_id_field": "id",
     "sample_fields": {
       "title": "title",
-      "company": "company",
-      "location": "location",
+      "company": "company.display_name",
+      "location": "location.display_name",
       "job_type": "contract_type",
       "apply_url": "redirect_url",
       "salary_min": "salary_min",
@@ -409,11 +409,13 @@
     "job_path": "SearchResult.SearchResultItems",
     "job_id_field": "MatchedObjectId",
     "sample_fields": {
-      "title": "PositionTitle",
-      "company": "OrganizationName",
-      "location": "PositionLocationDisplay",
-      "job_type": "EmploymentType",
-      "apply_url": "ApplyURI"
+      "title": "MatchedObjectDescriptor.PositionTitle",
+      "company": "MatchedObjectDescriptor.OrganizationName",
+      "location": "MatchedObjectDescriptor.PositionLocationDisplay",
+      "job_type": "MatchedObjectDescriptor.PositionSchedule[0].Name",
+      "apply_url": "MatchedObjectDescriptor.ApplyURI",
+      "salary_min": "MatchedObjectDescriptor.PositionRemuneration[0].MinimumRange",
+      "salary_max": "MatchedObjectDescriptor.PositionRemuneration[0].MaximumRange"
     }
   }
 ]

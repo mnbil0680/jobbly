@@ -140,7 +140,7 @@ class JobsDatabase {
             $this->selectStmt = $this->connection->prepare("SELECT id FROM jobs WHERE poster_id = ?");
         }
         
-        $poster_id = $jobData['source_api'] . "_" . $jobData['external_id'];
+        $poster_id = $jobData['poster_id'] ?? ($jobData['source_api'] . "_" . $jobData['external_id']);
         $this->selectStmt->bind_param("s", $poster_id);
         $this->selectStmt->execute();
         $existing = $this->selectStmt->get_result()->fetch_assoc();
@@ -174,6 +174,73 @@ class JobsDatabase {
             return false;
         }
         return $this->connection->insert_id;
+    }
+
+    /**
+     * Bulk insert jobs into the database
+     * Uses INSERT IGNORE to skip existing jobs (based on unique poster_id)
+     */
+    public function bulkInsertJobs($jobs) {
+        if (empty($jobs)) return 0;
+
+        $totalAffected = 0;
+        $batchSize = 100; // Insert in batches to avoid query size limits
+        $batches = array_chunk($jobs, $batchSize);
+
+        foreach ($batches as $batch) {
+            $values = [];
+            $placeholders = [];
+            $types = "";
+
+            foreach ($batch as $job) {
+                $placeholders[] = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                
+                // Ensure required fields
+                $company = $job['company_name'] ?? 'Unknown';
+                $poster_id = $job['poster_id'] ?? null;
+                $category_id = $job['category_id'] ?? 1; // Default to 1
+                $title = $job['title'] ?? 'Untitled Job';
+                $description = $job['description'] ?? '';
+                $location = $job['location'] ?? 'Remote';
+                $job_type = $job['job_type'] ?? 'Full-time';
+                $salary_min = (float)($job['salary_min'] ?? 0);
+                $salary_max = (float)($job['salary_max'] ?? 0);
+                $currency = $job['currency'] ?? 'USD';
+                $status = 'open';
+
+                $values[] = $company;
+                $values[] = $poster_id;
+                $values[] = $category_id;
+                $values[] = $title;
+                $values[] = $description;
+                $values[] = $location;
+                $values[] = $job_type;
+                $values[] = $salary_min;
+                $values[] = $salary_max;
+                $values[] = $currency;
+                $values[] = $status;
+
+                $types .= "ssissssddss";
+            }
+
+            $sql = "INSERT IGNORE INTO jobs 
+                    (company_name, poster_id, category_id, title, description, location, job_type, salary_min, salary_max, currency, status) 
+                    VALUES " . implode(', ', $placeholders);
+
+            $stmt = $this->connection->prepare($sql);
+            if (!$stmt) {
+                throw new Exception("Prepare failed: " . $this->connection->error);
+            }
+
+            $stmt->bind_param($types, ...$values);
+            if (!$stmt->execute()) {
+                throw new Exception("Execute failed: " . $stmt->error);
+            }
+            $totalAffected += $this->connection->affected_rows;
+            $stmt->close();
+        }
+
+        return $totalAffected;
     }
 
     /**
