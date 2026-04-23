@@ -56,6 +56,74 @@ if (empty($_SESSION['user_id'])) {
                     </div>
                     <button type="submit" class="btn-primary">Save Changes</button>
                 </form>
+
+                <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
+
+                <h2>Change Email</h2>
+                <form id="emailForm">
+                    <div class="form-group">
+                        <label for="newEmail">New Email Address</label>
+                        <input type="email" id="newEmail" class="form-control" placeholder="new@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="emailPassword">Password</label>
+                        <input type="password" id="emailPassword" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Update Email</button>
+                </form>
+
+                <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
+
+                <h2>Change Password</h2>
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Change Password</button>
+                </form>
+
+                <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border);">
+
+                <h2>Delete Account</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1rem;">
+                    Permanently delete your account and all associated data. This action cannot be undone.
+                </p>
+                <button type="button" class="btn-danger" onclick="showDeleteModal()" style="background-color: #dc3545; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 4px; cursor: pointer;">
+                    Delete My Account
+                </button>
+
+                <!-- Delete Account Modal -->
+                <div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; flex-items: center; justify-content: center;">
+                    <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 400px; margin: auto; margin-top: 10vh; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        <h3>Delete Account</h3>
+                        <p style="color: var(--text-muted);">
+                            Are you sure? This action cannot be undone. All your data will be permanently deleted.
+                        </p>
+                        <form id="deleteForm" style="margin-top: 1.5rem;">
+                            <div class="form-group">
+                                <label for="deletePassword">Enter your password to confirm:</label>
+                                <input type="password" id="deletePassword" class="form-control" placeholder="••••••••" required>
+                            </div>
+                            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                                <button type="button" class="btn-outline" onclick="hideDeleteModal()" style="padding: 0.75rem 1.5rem; border: 1px solid var(--border); background: white; cursor: pointer; border-radius: 4px;">
+                                    Cancel
+                                </button>
+                                <button type="submit" style="padding: 0.75rem 1.5rem; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                    Delete Account
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </section>
         </div>
     </main>
@@ -138,6 +206,99 @@ if (empty($_SESSION['user_id'])) {
                 if (e.target.files[0]) uploadFile(e.target.files[0], 'cv');
             });
         }
+
+        function showDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'flex';
+        }
+
+        function hideDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            document.getElementById('deletePassword').value = '';
+        }
+
+        document.getElementById('emailForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newEmail = document.getElementById('newEmail').value;
+            const password = document.getElementById('emailPassword').value;
+
+            try {
+                const res = await fetch('API_Ops.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'change_email', new_email: newEmail, password })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Email updated successfully!');
+                    location.reload();
+                } else {
+                    alert(data.message || 'Error updating email');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error updating email');
+            }
+        });
+
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                alert('New passwords do not match!');
+                return;
+            }
+
+            try {
+                const res = await fetch('API_Ops.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'change_password',
+                        current_password: currentPassword,
+                        new_password: newPassword,
+                        confirm_password: confirmPassword
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Password changed successfully!');
+                    document.getElementById('passwordForm').reset();
+                } else {
+                    alert(data.message || 'Error changing password');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error changing password');
+            }
+        });
+
+        document.getElementById('deleteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('deletePassword').value;
+
+            try {
+                const res = await fetch('API_Ops.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete_user', password })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Account deleted successfully!');
+                    window.location.href = 'login.php';
+                } else {
+                    alert(data.message || 'Error deleting account');
+                    hideDeleteModal();
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error deleting account');
+                hideDeleteModal();
+            }
+        });
     </script>
 </body>
 </html>
