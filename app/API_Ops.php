@@ -18,7 +18,7 @@ session_start();
 require_once __DIR__ . '/DB_Ops.php';
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../src/SourceFetcher.php';
-require_once __DIR__ . '/../src/SourceTester.php';
+// require_once __DIR__ . '/../src/SourceTester.php'; // File missing
 
 // Get action from GET, POST, or JSON body
 $action = $_GET['action'] ?? $_POST['action'] ?? null;
@@ -42,9 +42,9 @@ try {
         case 'sync':
             handleSyncAndSave();
             break;
-        case 'test_sources':
-            handleTestSources();
-            break;
+        // case 'test_sources':
+        //     handleTestSources();
+        //     break;
         case 'create':
             handleCreate();
             break;
@@ -265,13 +265,10 @@ function handleSignup() {
     }
     $db = new JobsDatabase();
     $userId = $db->registerUser($requestData['name'], $requestData['email'], $requestData['password']);
-    if ($userId) {
-        $_SESSION['user_id'] = $userId;
-        $_SESSION['user_name'] = $requestData['name'];
-        echo json_encode(['success' => true, 'message' => "User registered successfully"]);
-    } else {
-        throw new Exception("Registration failed (ensure email is unique)");
-    }
+    
+    $_SESSION['user_id'] = $userId;
+    $_SESSION['user_name'] = $requestData['name'];
+    echo json_encode(['success' => true, 'message' => "User registered successfully"]);
 }
 
 function handleLogout() {

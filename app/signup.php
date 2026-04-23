@@ -49,7 +49,15 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'signup', name, email, password })
                 });
-                const data = await res.json();
+                
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Server returned invalid response: ' + text.substring(0, 100));
+                }
+
                 if (data.success) {
                     window.location.href = 'index.php';
                 } else {
@@ -57,7 +65,7 @@
                 }
             } catch (err) {
                 console.error(err);
-                alert('An error occurred');
+                alert('Error: ' + err.message);
             }
         });
     </script>

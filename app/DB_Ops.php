@@ -426,11 +426,24 @@ class JobsDatabase {
     public function registerUser($name, $email, $password) {
         $hashed = password_hash($password, PASSWORD_DEFAULT);
         $stmt = $this->connection->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $name, $email, $hashed);
-        if ($stmt->execute()) {
-            return $this->connection->insert_id;
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $this->connection->error);
         }
-        return false;
+        $stmt->bind_param("sss", $name, $email, $hashed);
+        
+        if ($stmt->execute()) {
+            $newId = $this->connection->insert_id;
+            $stmt->close();
+            return $newId;
+        }
+        
+        if ($this->connection->errno === 1062) {
+            throw new Exception("Email already exists. Please login instead.");
+        }
+        
+        $error = $stmt->error;
+        $stmt->close();
+        throw new Exception("Registration failed: " . $error);
     }
 
     public function loginUser($email, $password) {
