@@ -15,7 +15,7 @@ if (empty($_SESSION['user_id'])) {
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body class="bg-surface">
     <?php include 'header.php'; ?>
@@ -99,7 +99,7 @@ if (empty($_SESSION['user_id'])) {
                 });
                 const data = await res.json();
                 if (data.success) {
-                    alert('Profile updated!');
+                    showToast('Profile updated successfully!', 'success');
                     location.reload();
                 }
             } catch (err) {
@@ -120,10 +120,10 @@ if (empty($_SESSION['user_id'])) {
                     });
                     const data = await res.json();
                     if (data.success) {
-                        alert(`${type.toUpperCase()} uploaded successfully!`);
+                        showToast(type.toUpperCase() + ' uploaded successfully!', 'success');
                         location.reload();
                     } else {
-                        alert(data.message);
+                        showToast(data.message, 'error');
                     }
                 } catch (err) {
                     console.error(err);
@@ -139,5 +139,6 @@ if (empty($_SESSION['user_id'])) {
             });
         }
     </script>
+<script src="assets/js/main.js"></script>
 </body>
 </html>
