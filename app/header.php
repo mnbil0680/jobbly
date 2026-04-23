@@ -24,9 +24,6 @@ $userName = $_SESSION['user_name'] ?? '';
                         <!--                        <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 4px;">favorite</span>-->
                         Saved
                     </a>
-                    <a class="menu-link <?php echo basename($_SERVER['PHP_SELF']) == 'my_jobs.php' ? 'active' : ''; ?>" href="my_jobs.php">
-                        My Jobs
-                    </a>
                     <a class="menu-link <?php echo basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active' : ''; ?>" href="profile.php">
                         Dashboard
                     </a>
