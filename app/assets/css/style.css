@@ -32,7 +32,7 @@ body {
 
 /* Header Styles */
 .header {
-    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+    background: linear-gradient(to right, #4f46e5, #818cf8);
     color: white;
     padding: 2rem 0;
     box-shadow: var(--shadow);
@@ -80,98 +80,130 @@ body {
     text-decoration: underline;
 }
 
-/* Main Container */
+.nav-link.active {
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--dark-color);
+    padding: 0.4rem 0.9rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nav-link.active:hover {
+    background: skyblue;
+    color: var(--dark-color);
+}
+
+.btn-profile{
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--dark-color);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-profile:hover {
+    background: skyblue;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
 .container {
     max-width: 1200px;
     margin: 3rem auto;
     padding: 0 2rem;
 }
 
-/* Search Section */
-.search-section {
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: var(--shadow);
-    margin-bottom: 2rem;
-}
-
-.search-section h2 {
-    margin-bottom: 1.5rem;
-    color: var(--dark-color);
-}
-
-.search-controls {
+/* About section Styles */
+.about-grid {
     display: flex;
-    gap: 1rem;
+    justify-content: center;
+    gap: 2rem;
     flex-wrap: wrap;
 }
 
-.search-input {
-    flex: 1;
-    min-width: 250px;
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 1rem;
-    transition: var(--transition);
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
-}
-
-/* Form Section */
-.form-section {
-    background: white;
+.about-card {
+    background: #fbfdff;
     padding: 2rem;
-    border-radius: 8px;
-    box-shadow: var(--shadow);
-    margin-bottom: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    flex: 1;
+    min-width: 280px;
+    max-width: 340px;
+    transition: 0.3s ease;
+    text-align: left;
 }
 
-.form-section h2 {
+.about-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+}
+
+.about-card h3 {
+    margin-bottom: 1rem;
+    color: #19253c;
+    text-align: center;
+}
+
+.about-card p {
+    color: #64748b;
+    line-height: 1.6;
+}
+
+/* Search section styles */
+.search-card {
+    background: linear-gradient(to right, #4f46e5, #818cf8);
+    padding: 3rem;
+    border-radius: 1rem;
+    color: white;
+    text-align: left;
+}
+
+/* Title */
+.search-title {
+    margin-top: 0;
     margin-bottom: 1.5rem;
-    color: var(--dark-color);
+    font-size: 2rem;
 }
 
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: var(--dark-color);
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 1rem;
-    font-family: inherit;
-    transition: var(--transition);
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
-}
-
-.form-buttons {
+.search-container {
     display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
+    align-items: stretch;
+    width: 100%;
+    max-width: 900px;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    background: white;
+    border-radius: 0.75rem 0 0 0.75rem;
+    padding: 0 1rem;
+}
+
+#searchInput {
+    width: 100%;
+    border: none;
+    outline: none;
+    padding: 1rem;
+    font-size: 1rem;
+    background: transparent;
+    color: #1e293b;
+}
+
+.search-btn {
+    background: white;
+    color: #4f46e5;
+    border: none;
+    padding: 0 2rem;
+    border-radius: 0 0.75rem 0.75rem 0;
+    cursor: pointer;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: 0.2s;
+}
+
+.search-btn:hover {
+    background: #f1f5f9;
 }
 
 /* Button Styles */
@@ -330,7 +362,7 @@ body {
     padding: 2rem;
 }
 
-/* Footer Styles */
+/* footer section  */
 .footer {
     background: var(--dark-color);
     color: white;
@@ -340,47 +372,56 @@ body {
 
 .footer-container {
     max-width: 1200px;
-    margin: 0 auto;
+    margin: auto;
     padding: 0 2rem;
+
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 2rem;
-    margin-bottom: 2rem;
 }
 
 .footer-section h3 {
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
+}
+
+.footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.footer-links a {
+    color: #adb5bd;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.footer-links a:hover {
     color: white;
 }
 
-.footer-section p {
-    margin-bottom: 0.5rem;
+.team-columns {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.team-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.team-tag {
     font-size: 0.95rem;
     opacity: 0.9;
 }
 
-.footer-section ul {
-    list-style: none;
-}
-
-.footer-section ul li {
-    margin-bottom: 0.5rem;
-}
-
-.footer-section a {
-    color: #adb5bd;
-    text-decoration: none;
-    transition: var(--transition);
-}
-
-.footer-section a:hover {
-    color: white;
-}
-
-.footer-credit {
+.footer-bottom {
     text-align: center;
-    padding-top: 2rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.9rem;
     opacity: 0.8;
 }
 
@@ -459,4 +500,55 @@ body {
     .form-section {
         padding: 1rem;
     }
+}
+
+/* Form Section */
+.form-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+}
+
+.form-section h2 {
+    margin-bottom: 1.5rem;
+    color: var(--dark-color);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: var(--transition);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
+}
+
+.form-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
 }

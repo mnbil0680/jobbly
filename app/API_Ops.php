@@ -91,8 +91,8 @@ function handleRead() {
         $search = strtolower($_GET['search']);
         $jobs = array_filter($jobs, function($job) use ($search) {
             return strpos(strtolower($job['title']), $search) !== false ||
-                   strpos(strtolower($job['company']), $search) !== false ||
-                   strpos(strtolower($job['description']), $search) !== false;
+                strpos(strtolower($job['company']), $search) !== false ||
+                strpos(strtolower($job['description']), $search) !== false;
         });
     }
 
