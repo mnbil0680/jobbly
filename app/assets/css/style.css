@@ -547,3 +547,67 @@ body.bg-surface {
         align-items: flex-start;
     }
 }
+/* --- PAGINATION --- */
+.pagination .search-btn {
+    transition: all 0.2s;
+}
+
+.pagination .search-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* --- JOB DETAILS --- */
+.job-details-hero {
+    background: var(--surface-card);
+    border-radius: 24px;
+    padding: 40px;
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--shadow-soft);
+}
+
+.job-description-section .job-row {
+    background: var(--surface-card);
+    cursor: default;
+}
+
+.job-description-section .job-row:hover {
+    transform: none;
+    border-color: var(--border-soft);
+    background: var(--surface-card);
+}
+
+/* --- NEW PAGINATION STYLES --- */
+.pagination-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 8px;
+    border-radius: 10px;
+    background: var(--surface-card);
+    border: 1px solid var(--border-soft);
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.pagination-item:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-soft);
+    transform: translateY(-2px);
+}
+
+.pagination-item.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+}
+
+.pagination-dot {
+    color: var(--text-muted);
+    padding: 0 4px;
+}

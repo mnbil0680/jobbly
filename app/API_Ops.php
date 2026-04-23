@@ -121,30 +121,38 @@ function handleSyncAndSave() {
     $filter = $sourceId ? ['source_id' => $sourceId] : [];
     $fetched = $fetcher->fetch_all($filter);
 
-    $db = new JobsDatabase();
-    $savedCount = 0;
+    $allJobs = [];
     $processedSources = [];
 
     foreach (($fetched['results'] ?? []) as $result) {
-        if (($result['status'] ?? '') !== 'ok' || empty($result['all_jobs']) || !is_array($result['all_jobs'])) {
+        if (($result['status'] ?? '') !== 'ok') {
+            if ($result['http_status'] === 429) {
+                // Return early with specific error if we hit rate limits on a single source request
+                echo json_encode([
+                    'success' => false,
+                    'message' => "Rate limit exceeded for {$result['name']}. Please wait before trying again.",
+                    'source_id' => $result['source_id']
+                ]);
+                return;
+            }
+            continue;
+        }
+
+        if (empty($result['all_jobs']) || !is_array($result['all_jobs'])) {
             continue;
         }
 
         foreach ($result['all_jobs'] as $jobData) {
-            if (empty($jobData['title']) || empty($jobData['company'])) {
+            if (empty($jobData['title']) || empty($jobData['company_name'])) {
                 continue;
             }
-
-            $normalized = normalizeFetchedJob($result['source_id'] ?? 'unknown', $jobData);
-            try {
-                $db->cacheApiJob($normalized);
-                $savedCount++;
-                $processedSources[] = $result['source_id'] ?? 'unknown';
-            } catch (Exception $e) {
-                // Ignore single errors
-            }
+            $allJobs[] = $jobData;
+            $processedSources[] = $result['source_id'] ?? 'unknown';
         }
     }
+
+    $db = new JobsDatabase();
+    $savedCount = $db->bulkInsertJobs($allJobs);
 
     echo json_encode([
         'success' => true,

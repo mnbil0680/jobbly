@@ -1,23 +1,7 @@
 const API_URL = 'API_Ops.php';
 
 document.addEventListener('DOMContentLoaded', () => {
-    const searchForm = document.querySelector('.hero-search');
-    const searchInput = document.querySelector('input[name="search"]');
-
-    if (searchForm) {
-        searchForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            performSearch();
-        });
-    }
-
-    if (searchInput) {
-        let timeout = null;
-        searchInput.addEventListener('input', () => {
-            clearTimeout(timeout);
-            timeout = setTimeout(performSearch, 500);
-        });
-    }
+    // Standard form submission is now preferred for pagination support
 });
 
 async function performSearch() {

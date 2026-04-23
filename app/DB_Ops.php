@@ -40,8 +40,7 @@ class JobsDatabase {
     /**
      * Get all jobs with optional search filter
      */
-    public function getAllJobs($search = '') {
-        // TODO: Implement SELECT query with search filter
+    public function getAllJobs($search = '', $limit = null, $offset = 0) {
         $query = "SELECT j.*, c.name as category_name 
                   FROM jobs j 
                   LEFT JOIN categories c ON j.category_id = c.id 
@@ -51,7 +50,7 @@ class JobsDatabase {
         $types = "";
 
         if (!empty($search)) {
-            $query .= " AND (LOWER(j.title) LIKE LOWER(?) OR LOWER(j.company_name) LIKE LOWER(?) OR LOWER(j.description) LIKE LOWER(?))";
+            $query .= " AND (j.title LIKE ? OR j.company_name LIKE ? OR j.description LIKE ?)";
             $searchTerm = "%$search%";
             $params[] = $searchTerm;
             $params[] = $searchTerm;
@@ -61,6 +60,13 @@ class JobsDatabase {
 
         $query .= " ORDER BY j.created_at DESC";
 
+        if ($limit !== null) {
+            $query .= " LIMIT ? OFFSET ?";
+            $params[] = (int)$limit;
+            $params[] = (int)$offset;
+            $types .= "ii";
+        }
+
         $stmt = $this->connection->prepare($query);
         if ($params) {
             $stmt->bind_param($types, ...$params);
@@ -69,6 +75,34 @@ class JobsDatabase {
         $stmt->execute();
         $result = $stmt->get_result();
         return $result->fetch_all(MYSQLI_ASSOC);
+    }
+
+    /**
+     * Get total count of jobs for pagination
+     */
+    public function getTotalJobsCount($search = '') {
+        $query = "SELECT COUNT(*) as total FROM jobs j WHERE 1=1";
+        $params = [];
+        $types = "";
+
+        if (!empty($search)) {
+            $query .= " AND (j.title LIKE ? OR j.company_name LIKE ? OR j.description LIKE ?)";
+            $searchTerm = "%$search%";
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+            $types .= "sss";
+        }
+
+        $stmt = $this->connection->prepare($query);
+        if ($params) {
+            $stmt->bind_param($types, ...$params);
+        }
+
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        return $row['total'] ?? 0;
     }
 
     /**

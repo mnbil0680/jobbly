@@ -18,7 +18,22 @@ require_once 'DB_Ops.php';
 
 $db = new JobsDatabase();
 $search = trim($_GET['search'] ?? '');
-$rows = $db->getAllJobs($search);
+?>
+
+<?php
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$limit = 20;
+$offset = ($page - 1) * $limit;
+$totalJobs = $db->getTotalJobsCount($search);
+$totalPages = ceil($totalJobs / $limit);
+
+// Handle out-of-range page (e.g. search reduces result set while on high page number)
+if ($page > $totalPages && $totalPages > 0) {
+    header("Location: index.php?page=1&search=" . urlencode($search));
+    exit;
+}
+
+$rows = $db->getAllJobs($search, $limit, $offset);
 ?>
 
 <main class="main-layout">
@@ -40,7 +55,7 @@ $rows = $db->getAllJobs($search);
 
     <section>
         <div class="section-head">
-            <h2>Recent Listings</h2>
+            <h2>Recent Listings (<?php echo $totalJobs; ?>)</h2>
         </div>
         
         <div id="jobsContainer" class="jobs-list">
@@ -80,12 +95,54 @@ $rows = $db->getAllJobs($search);
                             <button class="save-btn <?php echo $isSaved ? 'saved' : ''; ?>" onclick="toggleSavePost(<?php echo $job['id']; ?>, this)">
                                 <span class="material-symbols-outlined">favorite</span>
                             </button>
-                            <button class="view-btn" type="button">View</button>
+                            <a href="job_details.php?id=<?php echo $job['id']; ?>" class="view-btn">View</a>
                         </div>
                     </article>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
+
+        <?php if ($totalPages > 1): ?>
+            <div class="pagination" style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 50px; flex-wrap: wrap;">
+                <?php if ($page > 1): ?>
+                    <a href="index.php?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>" class="pagination-item">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </a>
+                <?php endif; ?>
+
+                <?php
+                $range = 2;
+                $show_items = [];
+                
+                // Logic for sliding window pagination: 1, 2, 3 ... 10, 11, 12 ... 50
+                for ($i = 1; $i <= $totalPages; $i++) {
+                    if ($i == 1 || $i == $totalPages || ($i >= $page - $range && $i <= $page + $range)) {
+                        $show_items[] = $i;
+                    } elseif ($i == $page - $range - 1 || $i == $page + $range + 1) {
+                        $show_items[] = '...';
+                    }
+                }
+                
+                $show_items = array_values(array_unique($show_items));
+
+                foreach ($show_items as $item):
+                    if ($item === '...'): ?>
+                        <span class="pagination-dot">...</span>
+                    <?php else: ?>
+                        <a href="index.php?page=<?php echo $item; ?>&search=<?php echo urlencode($search); ?>" 
+                           class="pagination-item <?php echo ($page == $item) ? 'active' : ''; ?>">
+                            <?php echo $item; ?>
+                        </a>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+
+                <?php if ($page < $totalPages): ?>
+                    <a href="index.php?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>" class="pagination-item">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </a>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
     </section>
 </main>
 
