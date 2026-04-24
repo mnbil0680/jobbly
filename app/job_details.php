@@ -50,11 +50,11 @@ $applyUrl = $job['apply_url'] ?? '#';
 
 <main class="main-layout">
     <section class="job-details-hero">
-        <div class="job-row" style="background: none; border: none; padding: 0; box-shadow: none;">
+        <div class="job-row no-border-bg">
             <div class="job-main">
-                <div class="job-logo" style="width: 80px; height: 80px; font-size: 2rem;"><?php echo $companyLogo; ?></div>
+                <div class="job-logo logo-large"><?php echo $companyLogo; ?></div>
                 <div>
-                    <h1 style="margin-bottom: 10px;"><?php echo htmlspecialchars($job['title']); ?></h1>
+                    <h1 class="mb-10"><?php echo htmlspecialchars($job['title']); ?></h1>
                     <div class="job-meta">
                         <span><span class="material-symbols-outlined">business</span><?php echo htmlspecialchars($job['company_name']); ?></span>
                         <span><span class="material-symbols-outlined">location_on</span><?php echo htmlspecialchars($job['location'] ?: 'Remote'); ?></span>
@@ -72,10 +72,10 @@ $applyUrl = $job['apply_url'] ?? '#';
         </div>
     </section>
 
-    <section class="job-description-section" style="margin-top: 40px;">
-        <div class="job-row" style="flex-direction: column; align-items: start; gap: 20px;">
-            <h2 style="color: var(--primary);">Job Description</h2>
-            <div class="job-description-content" style="line-height: 1.8; color: var(--text-muted); width: 100%;">
+    <section class="job-description-section mt-40">
+        <div class="job-row flex-col-start">
+            <h2 class="primary-text">Job Description</h2>
+            <div class="job-description-content desc-content">
                 <?php 
                 // We trust the database content now as we sanitize on ingestion,
                 // but for safety, we can still use a whitelist or just nl2br for non-html

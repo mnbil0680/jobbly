@@ -178,6 +178,14 @@ body.bg-surface::before {
     padding: 100px 28px 80px;
 }
 
+.main-layout-inedx{
+    background-color: var(--surface);
+    position: relative;
+    z-index: 1;
+    margin: 0 auto;
+    padding: 100px 100px 80px;
+
+}
 /* HERO */
 .hero-section {
     margin-bottom: 52px;
@@ -1221,3 +1229,15 @@ textarea.form-control {
     }
 }
 
+/* UTILITIES (Requirement: No Inline Styles) */
+.hidden { display: none !important; }
+.no-border-bg { background: none !important; border: none !important; padding: 0 !important; box-shadow: none !important; }
+.logo-large { width: 80px !important; height: 80px !important; font-size: 2rem !important; }
+.mb-10 { margin-bottom: 10px !important; }
+.mt-40 { margin-top: 40px !important; }
+.flex-col-start { flex-direction: column !important; align-items: flex-start !important; gap: 20px !important; }
+.primary-text { color: var(--primary) !important; }
+.desc-content { line-height: 1.8 !important; color: var(--text-muted) !important; width: 100% !important; }
+.w-100 { width: 100% !important; }
+.text-center { text-align: center !important; }
+.rotating { animation: spin 2s linear infinite; }

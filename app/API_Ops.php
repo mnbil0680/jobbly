@@ -98,8 +98,24 @@ function handleRead() {
     $db = new JobsDatabase();
     $userId = $_SESSION['user_id'] ?? null;
     $search = trim($_GET['search'] ?? '');
+    $view = $_GET['view'] ?? 'explore';
+    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+    $limit = 20;
+    $offset = ($page - 1) * $limit;
 
-    $rows = $db->getAllJobs($search);
+    if ($view === 'saved' && !$userId) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        return;
+    }
+
+    if ($view === 'saved') {
+        $rows = $db->getUserSavedJobs($userId, $limit, $offset);
+        $totalCount = $db->getUserSavedJobsCount($userId);
+    } else {
+        $rows = $db->getAllJobs($search, $limit, $offset);
+        $totalCount = $db->getTotalJobsCount($search);
+    }
+
     $jobs = array_map(function($job) use ($db, $userId) {
         $mapped = mapDbJobToResponse($job);
         $mapped['isSaved'] = $userId ? $db->isJobSaved($userId, $job['id']) : false;
@@ -109,8 +125,12 @@ function handleRead() {
     echo json_encode([
         'success' => true,
         'count' => count($jobs),
+        'total' => $totalCount,
+        'page' => $page,
+        'limit' => $limit,
+        'totalPages' => ceil($totalCount / $limit),
         'jobs' => array_values($jobs),
-        'source' => 'database'
+        'view' => $view
     ]);
 }
 
