@@ -28,7 +28,6 @@ $userName = $_SESSION['user_name'] ?? '';
                         Dashboard
                     </a>
                 <?php endif; ?>
-                <a class="menu-link" href="#" onclick="showTestEndpoints()">Test Endpoints</a>
             </div>
         </div>
 
