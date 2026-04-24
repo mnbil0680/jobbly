@@ -7,6 +7,10 @@
 // ** مهم  DO NOT push this file to GitHub            **
 // **================================================**
 
+// Suppress errors for production (Requirement: Good Practices)
+error_reporting(0);
+ini_set('display_errors', 0);
+
 // ===== DATABASE CONFIGURATION =====
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
