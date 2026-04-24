@@ -1233,6 +1233,7 @@ textarea.form-control {
 .hidden { display: none !important; }
 .no-border-bg { background: none !important; border: none !important; padding: 0 !important; box-shadow: none !important; }
 .logo-large { width: 80px !important; height: 80px !important; font-size: 2rem !important; }
+.logo-large-nav { font-size: 32px !important; color: var(--primary) !important; }
 .mb-10 { margin-bottom: 10px !important; }
 .mt-40 { margin-top: 40px !important; }
 .flex-col-start { flex-direction: column !important; align-items: flex-start !important; gap: 20px !important; }

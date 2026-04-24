@@ -11,8 +11,8 @@ $userName = $_SESSION['user_name'] ?? '';
 <nav class="top-nav">
     <div class="top-nav-inner">
         <div class="brand-group">
-            <a href="index.php" class="brand" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
-                <span class="material-symbols-outlined" style="font-size: 32px; color: var(--primary);">rocket_launch</span>
+            <a href="index.php" class="brand">
+                <span class="material-symbols-outlined logo-large-nav">rocket_launch</span>
                 <span>Jobbly</span>
             </a>
             <div class="menu-links" style="margin-left: 20px;">

@@ -42,3 +42,5 @@ $current_year = date('Y');
         </div>
     </div>
 </footer>
+</body>
+</html>
