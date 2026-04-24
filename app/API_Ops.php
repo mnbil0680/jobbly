@@ -215,6 +215,10 @@ function handleCreate() {
             return;
         }
 
+        if (!empty($_SESSION['user_id'])) {
+            $requestData['poster_id'] = 'user_' . $_SESSION['user_id'];
+        }
+
         // Create database instance and save job
         $db = new JobsDatabase();
         $newJobId = $db->createJob($requestData);

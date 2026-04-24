@@ -139,18 +139,21 @@ class JobsDatabase
         $data = $this->sanitizeData($data);
 
         $stmt = $this->connection->prepare(
-            "INSERT INTO JOBS
-            (company_name, category_id, title, description, location, job_type, salary_min, salary_max, currency, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO jobs
+            (company_name, poster_id, category_id, title, description, location, job_type, salary_min, salary_max, currency, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
 
         if (!$stmt) {
             throw new Exception("Prepare failed: " . $this->connection->error);
         }
 
+        $poster_id = $data['poster_id'] ?? null;
+
         $stmt->bind_param(
-            "sissssddss",
+            "ssissssddss",
             $data['company_name'],
+            $poster_id,
             $data['category_id'],
             $data['title'],
             $data['description'],
@@ -680,6 +683,14 @@ class JobsDatabase
         $stmt->execute();
         $result = $stmt->get_result()->fetch_assoc();
         return $result['total'] ?? 0;
+    }
+
+    public function getJobsByPosterId($posterId)
+    {
+        $stmt = $this->connection->prepare("SELECT j.*, c.name as category_name FROM jobs j LEFT JOIN categories c ON j.category_id = c.id WHERE j.poster_id = ? ORDER BY j.created_at DESC");
+        $stmt->bind_param("s", $posterId);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 }
 // Usage: $db = new JobsDatabase();
