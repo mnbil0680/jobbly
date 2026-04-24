@@ -116,7 +116,6 @@ $userName = $_SESSION['user_name'] ?? '';
             <div class="flex items-center gap-8">
                 <a class="text-xl font-black tracking-tight text-sky-900 dark:text-sky-100" href="index.php">Jobbly</a>
                 <nav class="hidden md:flex items-center space-x-6">
-                    <a class="text-sky-700 dark:text-sky-400 font-bold text-sm" href="jobs.php">Discover</a>
                     <?php if ($isLoggedIn): ?>
                         <a class="text-slate-600 dark:text-slate-400 hover:text-sky-600 transition-colors text-sm" href="jobs.php?view=saved">Saved</a>
                         <a class="text-slate-600 dark:text-slate-400 hover:text-sky-600 transition-colors text-sm" href="profile.php">Dashboard</a>
