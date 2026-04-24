@@ -19,7 +19,7 @@ require_once 'DB_Ops.php';
 $db = new JobsDatabase();
 
 $view = $_GET['view'] ?? 'explore';
-$isLoggedIn = !empty($_SESSION['user_id']);سس
+$isLoggedIn = !empty($_SESSION['user_id']);
 $userId = $_SESSION['user_id'] ?? null;
 ?>
 
