@@ -1,230 +1,122 @@
 # Jobbly - Job Application Manager
 
-## Description
-Jobbly is a Single-Page Application (SPA) that helps users search, track, and manage their job applications from multiple job sources in one place.
+![Jobbly Home Page](pics/homePage.png)
 
-**Current Status:** ✅ Multi-source job fetcher complete with 15 providers, 238+ jobs available
+## Table of Contents
+- [Description](#description)
+- [Screenshots](#screenshots)
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [Prerequisites](#prerequisites)
+- [Installation and Setup](#installation-and-setup)
+- [Running the Application](#running-the-application)
+- [Project Structure](#project-structure)
+- [Documentation](#documentation)
+- [License](#license)
+- [Authors](#authors)
+
+## Description
+Jobbly is a premium, editorial-grade Single-Page Application (SPA) that helps users search, track, and manage their job applications from multiple job sources in one place. It provides a robust and visually stunning interface to find jobs, save them, manage your own postings, and much more.
+
+## Screenshots
+
+### Home Page
+![Home Page](pics/homePage.png)
+
+### Sign Up & Login
+![Sign Up](pics/signup.png)
+![Login](pics/login.png)
+
+### User Profile
+![User Profile](pics/profile.png)
+
+### Job Exploration
+![Sample Jobs](pics/SampleJobs.png)
+![Job Description](pics/jobDesciption.png)
+
+### Job Management
+![Saved Jobs](pics/savedJobs.png)
+![Manage Jobs](pics/manageJobs.png)
+![Create Jobs](pics/createJobs.png)
+
+## Features
+- **Modern SPA Architecture:** Seamless transitions, fast loading, and dynamic content updates without full page reloads.
+- **Premium Design:** Glassmorphism, tonal depth, and custom typography provide a visually stunning experience.
+- **User Authentication:** Secure sign-up, login, and user profile functionality.
+- **Job Fetching & Ingestion:** Pulls thousands of jobs from multiple API sources (Remotive, Jobicy, RemoteOK, etc.) using a dedicated CLI tool.
+- **Job Management:** 
+  - Save favorite jobs.
+  - Create and post your own jobs.
+  - Manage (Edit/Delete) the jobs you posted.
+- **Advanced Search & Pagination:** Server-side pagination and robust search functionalities for seamless browsing.
 
 ## Technologies Used
 - **Backend:** PHP 8.2+
 - **Database:** MySQL
-- **Frontend:** AJAX (Fetch API), Vanilla JavaScript
-- **Job Sources:** 15 different APIs (Remotive, Jobicy, RemoteOK, The Muse, and more)
+- **Frontend:** HTML5, Vanilla CSS (Custom styling, modern layouts), Vanilla JavaScript, AJAX (Fetch API)
+- **Job Sources:** 15 different APIs for job aggregation
 
-## Quick Start
+## Prerequisites
+To run this project locally, we recommend using **XAMPP** (or WAMP/MAMP) to provide the necessary PHP and MySQL environment.
+- **XAMPP** (with PHP 8.2+)
+- **MySQL** (Included in XAMPP)
+- **Git**
 
-### 1. Verify Setup
+## Installation and Setup
+
+### 1. Clone the Repository
+Clone the repository into your XAMPP `htdocs` folder (e.g., `C:\xampp\htdocs\jobbly`).
 ```bash
-php scripts/verify_setup.php
+cd C:\xampp\htdocs
+git clone <repository_url> jobbly
+cd jobbly
 ```
 
-### 2. Start the Application
-```bash
-# Option A: Auto-launch
-cd bin
-START_PROJECT.bat          # Windows
+### 2. Configure Database
+1. Open the XAMPP Control Panel and start **Apache** and **MySQL**.
+2. Go to `http://localhost/phpmyadmin/` in your browser.
+3. Create a new database named `jobbly`.
+4. Run the database setup or import your schema if required.
 
-# Option B: Manual
-php src/fetch_sources_cli.php
-```
-
-### 3. Open in Browser
-```
-http://localhost/jobbly
-http://localhost/jobbly/src/fetch_sources.php (API endpoint)
-```
-
-## Project Structure
-
-```
-jobbly/
-├── docs/                          📖 Documentation (6 comprehensive guides)
-│   ├── START_HERE.md             ← Read this first!
-│   ├── SETUP_GUIDE.md            ← Master documentation
-│   ├── RUN_AND_TEST.md           ← Testing guide (5 methods)
-│   ├── QUICK_START.md            ← 2-minute setup
-│   ├── FETCHER_IMPLEMENTATION.md ← Technical architecture
-│   └── 15_JOB_SOURCES.md         ← Source registry with API links
-│
-├── src/                           🔧 Job Fetcher System
-│   ├── SourceFetcher.php         ← Core fetcher class (508 lines)
-│   ├── fetch_sources.php         ← Web API endpoint
-│   ├── fetch_sources_cli.php     ← Terminal diagnostic tool
-│   └── job_sources.json          ← Registry of 15 job providers
-│
-├── bin/                           🚀 Startup Scripts
-│   ├── START_PROJECT.bat         ← Windows launcher (double-click)
-│   └── START_PROJECT.ps1         ← PowerShell launcher
-│
-├── scripts/                       🛠️  Utility Scripts
-│   └── verify_setup.php          ← Setup verification
-│
-├── config/                        ⚙️  Configuration
-│   ├── config.php                ← Your configuration (NOT in git)
-│   └── config.example.php        ← Template with API key slots
-│
-├── app/                           🌐 Main Application
-│   ├── index.php                 ← Main SPA page
-│   ├── header.php                ← Site header
-│   ├── footer.php                ← Site footer
-│   ├── DB_Ops.php                ← Database operations
-│   ├── API_Ops.php               ← API operations
-│   ├── Upload.php                ← File upload handler
-│   └── assets/
-│       ├── css/style.css
-│       ├── js/main.js            ← Main JavaScript
-│       └── js/API_Ops.js         ← AJAX client
-│
-├── README.md                      ← This file
-└── .git/                          ← Git repository with full history
-```
-
-## Features
-
-### ✅ Phase 1 Complete: Job Fetcher System
-- ✓ Multi-source job fetcher (15 providers)
-- ✓ Support for JSON APIs, RSS feeds, XML
-- ✓ Automatic API key management
-- ✓ Web endpoint + CLI tool
-- ✓ Error handling & diagnostics
-- ✓ 238+ jobs available immediately
-- ✓ Complete documentation
-
-### ⏳ Phase 2 Planned: Database & UI
-- [ ] Job storage schema
-- [ ] Application tracking
-- [ ] Job browsing UI
-- [ ] One-click apply
-
-### ⏳ Phase 3 Planned: Advanced Features
-- [ ] Background sync
-- [ ] Job alerts
-- [ ] User dashboard
-
-## Current Live Status
-
-### ✅ Working (238 jobs)
-- Remotive (21 jobs)
-- Jobicy (100 jobs)
-- RemoteOK (97 jobs)
-- The Muse (20 jobs)
-
-### ⊘ Ready with API Keys
-- JSearch/RapidAPI
-- Adzuna
-- Findwork.dev
-- Jooble
-- Reed.co.uk
-
-### ✗ Needs Updates
-- 6 sources (endpoints need fixing)
-
-## Getting Started
-
-### New User?
-1. Read `docs/START_HERE.md` (5 min)
-2. Read `docs/QUICK_START.md` (5 min)
-3. Run `php scripts/verify_setup.php`
-4. Double-click `bin/START_PROJECT.bat`
-
-### Want to Test APIs?
-```bash
-cd /path/to/jobbly
-php src/fetch_sources_cli.php
-```
-
-### Want to Understand the Code?
-- Read `docs/FETCHER_IMPLEMENTATION.md`
-- Review `src/SourceFetcher.php`
-- Check `src/job_sources.json`
-
-## Configuration
-
-### Setup Config
+### 3. Setup Configuration
+Copy the example configuration file and configure your database credentials and API keys:
 ```bash
 cp config/config.example.php config/config.php
 ```
+Edit `config/config.php` to set your MySQL username/password and any necessary API keys.
 
-### Add API Keys (Optional)
-Edit `config/config.php` and add your keys:
-```php
-define('RAPIDAPI_KEY', 'your-key');
-define('ADZUNA_APP_ID', 'your-id');
-define('ADZUNA_APP_KEY', 'your-key');
-// ... see config.example.php for all keys
+## Running the Application
+
+### Accessing the Web App
+Simply open your browser and navigate to:
+```
+http://localhost/jobbly
+```
+
+### Ingesting Jobs via CLI (Recommended)
+To populate the database with jobs from our 15 sources, we strongly recommend using the provided ingestion script. Open your terminal in the project root and run:
+```bash
+php src/ingest_jobs_cli.php
+```
+*This command fetches live jobs from various providers and stores them in your local database for rapid searching and pagination on the frontend.*
+
+## Project Structure
+```text
+jobbly/
+├── app/               # Main Application (Views, Controllers, Assets)
+├── bin/               # Executable startup scripts
+├── config/            # Configuration files (DB, APIs)
+├── docs/              # Comprehensive Documentation
+├── pics/              # Screenshots for Documentation
+├── scripts/           # Utility and setup verification scripts
+└── src/               # Job Fetcher System & Ingestion CLI
 ```
 
 ## Documentation
-
-All documentation is in `docs/`:
-
-| Document | Purpose |
-|----------|---------|
-| **START_HERE.md** | Overview & quick start (5 min) |
-| **SETUP_GUIDE.md** | Master guide (everything) |
-| **RUN_AND_TEST.md** | Setup & testing (5 methods) |
-| **QUICK_START.md** | Quick setup (2 min) |
-| **FETCHER_IMPLEMENTATION.md** | Technical architecture |
-| **15_JOB_SOURCES.md** | Source registry with API links |
-
-## Common Commands
-
-```bash
-# Verify setup
-php scripts/verify_setup.php
-
-# Test all sources
-php src/fetch_sources_cli.php
-
-# Test single source
-php src/fetch_sources_cli.php --source remotive
-
-# Show errors
-php src/fetch_sources_cli.php --verbose
-
-# JSON output
-php src/fetch_sources_cli.php --json
-
-# Web API
-curl http://localhost/jobbly/src/fetch_sources.php
-
-# Main app
-open http://localhost/jobbly
-```
-
-## Development
-
-### Project Layout Conventions
-- `docs/` - All documentation
-- `src/` - Job fetcher system source code
-- `bin/` - Executable startup scripts
-- `scripts/` - Utility scripts
-- `config/` - Configuration files
-- `app/` - Main SPA application
-
-### Adding New API Sources
-1. Edit `src/job_sources.json` to add source definition
-2. Test with `php src/fetch_sources_cli.php --source <id>`
-3. Update documentation
-
-### Database Integration (Next Phase)
-- Create `jobs` table from schema in `docs/FETCHER_IMPLEMENTATION.md`
-- Build ingestion layer
-- Integrate with UI
-
-## Git History
-
-All file reorganization preserves full git history. Use:
-```bash
-git log --follow src/SourceFetcher.php  # See history of moved file
-```
-
-## Support
-
-- **Setup issues?** → `docs/RUN_AND_TEST.md` → Troubleshooting
-- **Want to test?** → Run `php src/fetch_sources_cli.php`
-- **API keys?** → See `docs/15_JOB_SOURCES.md`
-- **Understanding code?** → See `docs/FETCHER_IMPLEMENTATION.md`
+For more in-depth technical details, check the `docs/` folder:
+- `docs/START_HERE.md` - Read this first!
+- `docs/SETUP_GUIDE.md` - Master documentation
+- `docs/FETCHER_IMPLEMENTATION.md` - Technical architecture
 
 ## License
 [Add your license here]
@@ -232,10 +124,3 @@ git log --follow src/SourceFetcher.php  # See history of moved file
 ## Authors
 - Backend: AI Assistant (OpenCode)
 - Project Lead: [Your Name]
-
----
-
-**Ready to get started?** Read `docs/START_HERE.md` or run:
-```bash
-php scripts/verify_setup.php && php src/fetch_sources_cli.php
-```
