@@ -100,7 +100,7 @@ function renderJobs(data) {
                 </div>
             </div>
             <div class="job-side">
-                <span class="badge">${escapeHtml(job.salary || 'N/A')}</span>
+                <span class="badge">${escapeHtml(job.salary)}</span>
                 <button class="save-btn ${job.isSaved ? 'saved' : ''}" 
                         onclick="event.stopPropagation(); toggleSavePost(${job.id}, this)">
                     <span class="material-symbols-outlined">favorite</span>

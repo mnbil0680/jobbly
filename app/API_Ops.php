@@ -555,6 +555,8 @@ function mapDbJobToResponse($job) {
         } else {
             $salary = "{$currency} up to " . number_format($max);
         }
+    } else {
+        $salary = 'Competitive';
     }
 
     return [
