@@ -90,7 +90,8 @@ else if ($view === 'saved') {
                     </div>
                 <?php else: ?>
                     <?php foreach ($rows as $job):
-                        $companyLogo = strtoupper(substr($job['company_name'] ?? 'U', 0, 1));
+                        $companyName = $job['company_name'] ?? 'U';
+                        $companyLogo = strtoupper(function_exists('mb_substr') ? mb_substr($companyName, 0, 1) : substr($companyName, 0, 1));
                         $isSaved = $isLoggedIn ? $db->isJobSaved($userId, $job['id']) : false;
 
                         $salary = 'N/A';

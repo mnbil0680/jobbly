@@ -359,13 +359,17 @@ class SourceFetcher {
                     $jobId = $matches[1];
                 }
 
+                if ($title === 'Unknown' || $company === 'Unknown' || $title === '' || $company === '') {
+                    continue;
+                }
+
                 $jobData = [
-                    'title' => $title !== '' ? $title : 'Unknown',
-                    'company_name' => $company !== '' ? $company : 'Unknown',
-                    'location' => $location !== '' ? $location : 'Unknown',
+                    'title' => $title,
+                    'company_name' => $company,
+                    'location' => $location !== '' ? $location : 'Remote',
                     'apply_url' => $applyUrl !== '' ? $applyUrl : '#',
                     'poster_id' => 'linkedin_' . ($jobId !== 'N/A' ? $jobId : md5($title . $company)),
-                    'category_id' => 1, // Will be re-mapped by normalize_for_db logic if called
+                    'category_id' => 1,
                     'description' => '',
                     'job_type' => 'Full-time',
                     'salary_min' => 0,
@@ -633,7 +637,8 @@ class SourceFetcher {
         $desc_fields = ['description', 'description_html', 'body', 'snippet', 'job_description'];
         foreach($desc_fields as $df) {
             if (isset($job[$df]) && !empty($job[$df])) {
-                $normalized['description'] = $this->ensure_string($job[$df]);
+                $rawDesc = $this->ensure_string($job[$df]);
+                $normalized['description'] = $this->sanitizeDescription($rawDesc);
                 break;
             }
         }
@@ -671,9 +676,9 @@ class SourceFetcher {
         $summary['company'] = $summary['company_name'];
         $summary['id'] = $summary['poster_id'];
 
-        // Limit string lengths for display
-        $summary['title'] = substr($summary['title'], 0, 60);
-        $summary['company'] = substr($summary['company'], 0, 40);
+        // Limit string lengths for display (use mb_substr for UTF-8 safety)
+        $summary['title'] = function_exists('mb_substr') ? mb_substr($summary['title'], 0, 60) : substr($summary['title'], 0, 60);
+        $summary['company'] = function_exists('mb_substr') ? mb_substr($summary['company'], 0, 40) : substr($summary['company'], 0, 40);
 
         return $summary;
     }
@@ -746,6 +751,30 @@ class SourceFetcher {
             }
         }
         return null;
+    }
+
+    /**
+     * Sanitize job description HTML
+     */
+    private function sanitizeDescription($html) {
+        if (empty($html)) return '';
+
+        // Strip scripts and styles
+        $html = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $html);
+        $html = preg_replace('/<style\b[^>]*>(.*?)<\/style>/is', '', $html);
+        
+        // Strip tracking pixels and images that look like trackers
+        $html = preg_replace('/<img[^>]+src=[^>]*blank\.gif[^>]*>/i', '', $html);
+        $html = preg_replace('/<img[^>]+src=[^>]*track[^>]*>/i', '', $html);
+
+        // Remove inline styles and classes to keep it clean for our UI
+        $html = preg_replace('/style="[^"]*"/', '', $html);
+        $html = preg_replace('/class="[^"]*"/', '', $html);
+
+        // Remove empty tags
+        $html = preg_replace('/<(p|div|span|div)>\s*(&nbsp;)?\s*<\/\1>/i', '', $html);
+
+        return trim($html);
     }
 
     /**

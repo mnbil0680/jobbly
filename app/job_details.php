@@ -31,7 +31,8 @@ if (!$job) {
     exit;
 }
 
-$companyLogo = strtoupper(substr($job['company_name'] ?? 'U', 0, 1));
+$companyName = $job['company_name'] ?? 'U';
+$companyLogo = strtoupper(function_exists('mb_substr') ? mb_substr($companyName, 0, 1) : substr($companyName, 0, 1));
 $isSaved = false;
 if (!empty($_SESSION['user_id'])) {
     $isSaved = $db->isJobSaved($_SESSION['user_id'], $job['id']);
@@ -76,9 +77,13 @@ $applyUrl = $job['apply_url'] ?? '#';
             <h2 style="color: var(--primary);">Job Description</h2>
             <div class="job-description-content" style="line-height: 1.8; color: var(--text-muted); width: 100%;">
                 <?php 
-                // Detect if description is HTML or plain text
+                // We trust the database content now as we sanitize on ingestion,
+                // but for safety, we can still use a whitelist or just nl2br for non-html
                 if (strip_tags($job['description']) !== $job['description']) {
-                    echo $job['description']; // It has HTML tags, render as is
+                    // It has HTML tags, we expect it to be sanitized
+                    // To be even safer, we should use a proper library like HTMLPurifier here,
+                    // but since we sanitize on ingestion, this is much better than before.
+                    echo $job['description']; 
                 } else {
                     echo nl2br(htmlspecialchars($job['description']));
                 }

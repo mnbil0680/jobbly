@@ -31,6 +31,7 @@ class JobsDatabase
         if ($this->connection->connect_error) {
             throw new Exception('Database connection failed: ' . $this->connection->connect_error);
         }
+        $this->connection->set_charset("utf8mb4");
     }
 
     public function __destruct()
@@ -239,10 +240,10 @@ class JobsDatabase
                 $placeholders[] = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
                 // Ensure required fields
-                $company = $job['company_name'] ?? 'Unknown';
+                $company = $job['company_name'] ?? 'N/A';
                 $poster_id = $job['poster_id'] ?? null;
                 $category_id = $job['category_id'] ?? 1; // Default to 1
-                $title = $job['title'] ?? 'Untitled Job';
+                $title = $job['title'] ?? 'N/A';
                 $description = $job['description'] ?? '';
                 $location = $job['location'] ?? 'Remote';
                 $job_type = $job['job_type'] ?? 'Full-time';
