@@ -93,6 +93,7 @@ function renderJobs(data) {
                 <div class="job-logo">${escapeHtml(job.company.charAt(0).toUpperCase())}</div>
                 <div>
                     <h3>${escapeHtml(job.title)}</h3>
+                    <div class="job-company">${escapeHtml(job.company)}</div>
                     <div class="job-meta">
                         <span><span class="material-symbols-outlined">business</span>${escapeHtml(job.company)}</span>
                         <span><span class="material-symbols-outlined">location_on</span>${escapeHtml(job.location || 'Remote')}</span>

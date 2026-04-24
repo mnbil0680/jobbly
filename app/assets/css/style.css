@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
 * {
     box-sizing: border-box;
@@ -7,35 +7,42 @@
 }
 
 :root {
-    --surface: #060912;
-    --surface-card: #0d1117;
-    --surface-raised: #111827;
-    --surface-input: #0a0f1a;
-    --text-main: #f1f5f9;
-    --text-muted: #64748b;
-    --text-soft: #94a3b8;
-    --primary: #6366f1;
-    --primary-light: #818cf8;
-    --primary-strong: #4f46e5;
-    --primary-soft: rgba(99, 102, 241, 0.12);
-    --primary-glow: rgba(99, 102, 241, 0.25);
-    --accent: #06b6d4;
-    --accent-soft: rgba(6, 182, 212, 0.12);
+    /* Tonal Depth System (The Precision Curator) */
+    --surface: #faf9fc;
+    --surface-container-low: #f3f3f7;
+    --surface-container-lowest: #ffffff;
+    --surface-container-highest: #e2e2e9;
+    --surface-bright: #ffffff;
+    
+    /* Brand Colors (Atmospheric Blues) */
+    --primary: #0061a4;
+    --primary-dim: #005590;
+    --primary-soft: rgba(0, 97, 164, 0.08);
+    --secondary-container: #e8eaf6;
+    --on-secondary-container: #1a237e;
+    
+    /* Typography Palette */
+    --on-surface: #2e3339;
+    --on-surface-variant: #5b5f66;
+    --tertiary: #595d78;
+    
+    /* UI States */
     --success: #10b981;
-    --danger: #f43f5e;
-    --border: rgba(255, 255, 255, 0.07);
-    --border-hover: rgba(99, 102, 241, 0.4);
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.6);
-    --glass: rgba(13, 17, 23, 0.85);
-    --radius-sm: 8px;
-    --radius-md: 14px;
-    --radius-lg: 20px;
-    --radius-xl: 28px;
-    --font-main: 'Plus Jakarta Sans', system-ui, sans-serif;
-    --font-mono: 'DM Mono', monospace;
-    --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    --danger: #ef4444;
+    --outline-variant: rgba(174, 178, 186, 0.2);
+    
+    /* Shadows (Ambient Occlusion) */
+    --shadow-ambient: 0px 4px 20px rgba(46, 51, 57, 0.04), 0px 8px 40px rgba(46, 51, 57, 0.08);
+    
+    /* Radius & Spacing */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 20px;
+    
+    /* Typography Scale */
+    --font-main: 'Manrope', system-ui, sans-serif;
+    --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html {
@@ -55,7 +62,7 @@ body.bg-surface::before {
     content: '';
     position: fixed;
     inset: 0;
-    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-image: radial-gradient(circle, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
     background-size: 32px 32px;
     pointer-events: none;
     z-index: 0;
@@ -67,10 +74,9 @@ body.bg-surface::before {
     top: 0;
     width: 100%;
     z-index: 100;
-    background: var(--glass);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border-bottom: 1px solid var(--border);
+    background: rgba(250, 249, 252, 0.8);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
 
 .top-nav-inner {
@@ -91,25 +97,21 @@ body.bg-surface::before {
 
 .brand {
     font-weight: 800;
-    letter-spacing: -0.04em;
-    font-size: 1.45rem;
+    letter-spacing: -0.02em;
+    font-size: 1.5rem; /* headline-sm */
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
 }
 
 .brand .material-symbols-outlined {
-    color: var(--primary-light);
-    font-size: 26px;
+    color: var(--primary);
+    font-size: 28px;
 }
 
-.brand > span:last-of-type,
 .brand > span:not(.material-symbols-outlined) {
-    background: linear-gradient(135deg, var(--primary-light), var(--accent));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--primary);
 }
 
 .menu-links {
@@ -119,21 +121,21 @@ body.bg-surface::before {
 
 .menu-link {
     text-decoration: none;
-    color: var(--text-muted);
+    color: var(--on-surface-variant);
     font-weight: 600;
-    font-size: 0.9rem;
-    padding: 6px 14px;
-    border-radius: var(--radius-sm);
-    transition: color var(--transition), background var(--transition);
+    font-size: 0.875rem;
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    transition: all var(--transition);
 }
 
 .menu-link:hover {
-    color: var(--text-main);
-    background: rgba(255, 255, 255, 0.06);
+    color: var(--on-surface);
+    background: var(--surface-container-low);
 }
 
 .menu-link.active {
-    color: var(--primary-light);
+    color: var(--primary);
     background: var(--primary-soft);
 }
 
@@ -178,13 +180,13 @@ body.bg-surface::before {
     padding: 100px 28px 80px;
 }
 
-.main-layout-inedx{
+.main-layout-inedx {
     background-color: var(--surface);
     position: relative;
     z-index: 1;
     margin: 0 auto;
-    padding: 100px 100px 80px;
-
+    padding: 120px 32px 80px 64px; /* Asymmetrical Margin: 64px left, 32px right */
+    max-width: 1400px;
 }
 /* HERO */
 .hero-section {
@@ -195,11 +197,10 @@ body.bg-surface::before {
     position: relative;
     overflow: hidden;
     border-radius: var(--radius-xl);
-    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #1e3a5f 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dim) 100%);
     color: #fff;
-    padding: 64px 52px 60px;
-    border: 1px solid rgba(99, 102, 241, 0.25);
-    box-shadow: 0 32px 80px -20px rgba(79, 70, 229, 0.35), var(--shadow-lg);
+    padding: 80px 64px;
+    box-shadow: var(--shadow-ambient);
 }
 
 .hero-card::before {
@@ -228,11 +229,11 @@ body.bg-surface::before {
 }
 
 .hero-content h1 {
-    font-size: clamp(2rem, 3.5vw, 3.2rem);
+    font-size: 3.2rem;
     font-weight: 800;
-    letter-spacing: -0.04em;
-    line-height: 1.15;
-    margin-bottom: 10px;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 12px;
 }
 
 .hero-subtitle {
@@ -243,21 +244,19 @@ body.bg-surface::before {
 }
 
 .hero-search {
-    background: rgba(6, 9, 18, 0.7);
-    backdrop-filter: blur(12px);
+    background: var(--surface-container-highest);
     border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 8px 8px 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    transition: border-color var(--transition), box-shadow var(--transition);
+    gap: 12px;
+    padding: 8px 8px 8px 20px;
+    box-shadow: none; /* Inset look doesn't need shadow */
+    transition: all var(--transition);
 }
 
 .hero-search:focus-within {
-    border-color: rgba(99, 102, 241, 0.5);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(99, 102, 241, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    background: var(--surface-container-lowest);
+    box-shadow: 0 0 0 2px var(--primary-soft);
 }
 
 .hero-search-input {
@@ -286,27 +285,25 @@ body.bg-surface::before {
 }
 
 .hero-search-input input::placeholder {
-    color: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .search-btn {
     border: none;
     border-radius: var(--radius-md);
-    background: var(--primary);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dim) 100%);
     color: #fff;
     font-weight: 700;
-    font-size: 0.92rem;
+    font-size: 0.875rem;
     font-family: var(--font-main);
-    padding: 13px 28px;
+    padding: 14px 32px;
     cursor: pointer;
-    white-space: nowrap;
-    transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+    transition: all var(--transition);
 }
 
 .search-btn:hover {
-    background: var(--primary-strong);
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 97, 164, 0.2);
 }
 
 .search-btn:active {
@@ -382,46 +379,29 @@ body.bg-surface::before {
 .jobs-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 16px;
+    background: var(--surface-container-low);
+    padding: 24px;
+    border-radius: var(--radius-xl);
 }
 
 .job-row {
-    background: var(--surface-card);
+    background: var(--surface-container-lowest);
     border-radius: var(--radius-lg);
-    border: 1px solid var(--border);
-    padding: 22px 24px;
+    padding: 32px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    transition: transform var(--transition), border-color var(--transition), background var(--transition), box-shadow var(--transition);
+    gap: 24px;
+    transition: all var(--transition);
     cursor: pointer;
     position: relative;
-    overflow: hidden;
-}
-
-.job-row::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: linear-gradient(180deg, var(--primary), var(--accent));
-    border-radius: 0 3px 3px 0;
-    opacity: 0;
-    transition: opacity var(--transition);
+    box-shadow: none; /* Removed borders and standard shadows */
 }
 
 .job-row:hover {
-    transform: translateY(-2px) translateX(2px);
-    border-color: var(--border-hover);
-    background: var(--surface-raised);
-    box-shadow: var(--shadow-md), 0 0 0 1px rgba(99, 102, 241, 0.1);
-}
-
-.job-row:hover::before {
-    opacity: 1;
+    background: var(--surface-container-low);
+    transform: translateY(-2px);
 }
 
 .job-main {
@@ -450,14 +430,18 @@ body.bg-surface::before {
 }
 
 .job-main h3 {
-    margin: 0 0 6px;
-    font-size: 1.05rem;
-    color: var(--text-main);
+    margin: 0 0 4px;
+    font-size: 1.1rem; /* title-md */
+    color: var(--on-surface);
     font-weight: 700;
-    letter-spacing: -0.02em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    letter-spacing: -0.01em;
+}
+
+.job-company {
+    font-size: 0.875rem; /* label-md */
+    color: var(--on-surface-variant);
+    font-weight: 600;
+    margin-bottom: 8px;
 }
 
 .job-meta {
@@ -470,9 +454,9 @@ body.bg-surface::before {
 .job-meta span {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    color: var(--text-muted);
-    font-size: 0.84rem;
+    gap: 6px;
+    color: var(--tertiary); /* metadata tertiary color */
+    font-size: 0.75rem; /* label-sm */
     font-weight: 500;
 }
 
@@ -488,15 +472,14 @@ body.bg-surface::before {
 }
 
 .badge {
-    border-radius: 999px;
-    background: rgba(16, 185, 129, 0.12);
-    color: #34d399;
+    border-radius: 9999px;
+    background: var(--secondary-container);
+    color: var(--on-secondary-container);
     font-weight: 700;
-    padding: 5px 12px;
-    font-size: 0.78rem;
-    font-family: var(--font-mono);
-    letter-spacing: -0.01em;
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    padding: 6px 16px;
+    font-size: 0.75rem; /* label-sm */
+    font-family: var(--font-main);
+    letter-spacing: 0.02em;
     white-space: nowrap;
 }
 
@@ -666,11 +649,10 @@ body.bg-surface::before {
 .auth-container {
     max-width: 440px;
     margin: 60px auto;
-    padding: 44px;
-    background: var(--surface-card);
+    padding: 48px;
+    background: var(--surface-container-lowest);
     border-radius: var(--radius-xl);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-ambient);
     animation: fadeUp 0.5s ease-out;
 }
 
@@ -703,15 +685,14 @@ body.bg-surface::before {
 
 .form-control {
     width: 100%;
-    padding: 12px 16px;
-    background: var(--surface-input);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text-main);
-    font-size: 0.95rem;
+    padding: 16px 20px;
+    background: var(--surface-container-highest);
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--on-surface);
+    font-size: 0.875rem; /* body-md */
     font-family: var(--font-main);
-    transition: border-color var(--transition), box-shadow var(--transition);
-    -webkit-appearance: none;
+    transition: all var(--transition);
 }
 
 .form-control::placeholder {
