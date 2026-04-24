@@ -45,12 +45,12 @@ $initialPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
     </section>
 
     <!-- SPA VIEW NAVIGATION -->
-    <div class="view-tabs">
+    <!-- <div class="view-tabs">
         <button class="tab-btn <?php echo $initialView === 'explore' ? 'active' : ''; ?>" data-view="explore">Explore</button>
         <?php if ($isLoggedIn): ?>
             <button class="tab-btn <?php echo $initialView === 'saved' ? 'active' : ''; ?>" data-view="saved">Saved Jobs</button>
         <?php endif; ?>
-    </div>
+    </div> -->
 
     <!-- DYNAMIC CONTENT AREA -->
     <section class="content-section">

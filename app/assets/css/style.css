@@ -264,12 +264,13 @@ body.bg-surface::before {
     align-items: center;
     flex: 1;
     gap: 10px;
-    color: rgba(255, 255, 255, 0.35);
+    color: rgb(0, 0, 0);
 }
 
 .hero-search-input .material-symbols-outlined {
     font-size: 22px;
     flex-shrink: 0;
+    color: #000000; /* Sets the icon color to black */
 }
 
 .hero-search-input input {
@@ -285,7 +286,7 @@ body.bg-surface::before {
 }
 
 .hero-search-input input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgb(0, 0, 0);
 }
 
 .search-btn {
