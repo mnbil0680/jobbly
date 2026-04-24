@@ -20,18 +20,18 @@ $userName = $_SESSION['user_name'] ?? '';
                     Explore
                 </a>
                 <?php if ($isLoggedIn): ?>
-                    <a class="menu-link <?php echo ($_GET['view'] ?? '') === 'saved' ? 'active' : ''; ?>" href="index.php?view=saved">
-                        <!--                        <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 4px;">favorite</span>-->
-                        Saved
-                    </a>
-                    <a class="menu-link <?php echo basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active' : ''; ?>" href="profile.php">
-                        Dashboard
-                    </a>
                     <a class="menu-link <?php echo basename($_SERVER['PHP_SELF']) == 'manage_jobs.php' ? 'active' : ''; ?>" href="manage_jobs.php">
                         Manage Jobs
                     </a>
                     <a class="menu-link create-job-link <?php echo basename($_SERVER['PHP_SELF']) == 'create_job.php' ? 'active' : ''; ?>" href="create_job.php">
                         <span class="material-symbols-outlined" style="font-size:16px;vertical-align:-3px;margin-right:4px;">add_circle</span>Create Job
+                    </a>
+                    <a class="menu-link <?php echo basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active' : ''; ?>" href="profile.php">
+                        Profile
+                    </a>
+                    <a class="menu-link <?php echo ($_GET['view'] ?? '') === 'saved' ? 'active' : ''; ?>" href="index.php?view=saved">
+                        <!--                        <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 4px;">favorite</span>-->
+                        Saved
                     </a>
                 <?php endif; ?>
             </div>
