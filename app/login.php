@@ -47,7 +47,7 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    window.location.href = 'index.php';
+                    window.location.href = 'jobs.php';
                 } else {
                     showToast(data.message || 'Invalid email or password.', 'error');
                 }
