@@ -20,50 +20,67 @@ let currentPage = 1;
  * Fetches job data from the server based on the current view, page, and search query.
  */
 async function fetchJobs(view = 'explore', page = 1, search = '') {
-    // Update global state
     currentView = view;
     currentPage = page;
     currentSearchTerm = search;
 
     const container = document.getElementById('jobsContainer');
-    const pagination = document.getElementById('paginationContainer');
-    
-    // Show loading indicator
-    if (container) container.innerHTML = `
-        <div class="loader-container">
-            <div class="spinner"></div>
-            <p>Loading jobs from database...</p>
-        </div>`;
+
+    if (container) {
+        container.innerHTML = `
+            <div class="loader-container">
+                <div class="spinner"></div>
+                <p>Loading jobs from database...</p>
+            </div>`;
+    }
 
     try {
-        // Construct the URL with parameters (Requirement #3: AJAX calls for retrieval)
+        // Cancel previous request
+        if (window.currentAbortController) {
+            window.currentAbortController.abort();
+        }
+
+        window.currentAbortController = new AbortController();
+
         const params = new URLSearchParams({
             action: 'read',
-            view: view,
-            page: page,
-            search: search
+            view,
+            page
         });
 
-        const response = await fetch(`API_Ops.php?${params.toString()}`);
-        
-        // Handle server-side validation/errors (Requirement #3)
-        if (!response.ok) throw new Error('Server responded with an error');
-        
+        if (search?.trim()) {
+            params.append('search', search.trim());
+        }
+
+        const controller = window.currentAbortController;
+        const timeout = setTimeout(() => controller.abort(), 10000);
+
+        const response = await fetch(`API_Ops.php?${params.toString()}`, {
+            signal: controller.signal
+        });
+
+        clearTimeout(timeout);
+
         const data = await response.json();
 
-        if (data.success) {
-            renderJobs(data);
-            updatePagination(data);
-            updateURL(view, page, search);
-        } else {
-            showToast(data.message || 'Error fetching data', 'error');
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Failed to fetch jobs');
         }
+
+        renderJobs(data);
+        updatePagination(data);
+        updateURL(view, page, search);
+
     } catch (error) {
         console.error('Fetch Error:', error);
-        showToast('Connection failed. Please check your server.', 'error');
+
+        if (error.name === 'AbortError') {
+            showToast('Request timed out. Try again.', 'error');
+        } else {
+            showToast(error.message || 'Connection failed', 'error');
+        }
     }
 }
-
 /**
  * RENDERING Logic
  * Dynamically updates the HTML content (Requirement #1: SPA behavior)
@@ -71,7 +88,7 @@ async function fetchJobs(view = 'explore', page = 1, search = '') {
 function renderJobs(data) {
     const container = document.getElementById('jobsContainer');
     const headTitle = document.querySelector('.section-head h2');
-    
+
     if (headTitle) {
         headTitle.textContent = data.view === 'saved' ? `Saved Jobs (${data.total})` : `Recent Listings (${data.total})`;
     }
@@ -124,7 +141,7 @@ function updatePagination(data) {
     }
 
     let buttons = '';
-    
+
     // Simple sliding window for pagination
     for (let i = 1; i <= data.totalPages; i++) {
         if (i === 1 || i === data.totalPages || (i >= data.page - 2 && i <= data.page + 2)) {
@@ -148,7 +165,7 @@ async function syncExternalData(sourceId = null) {
         const url = sourceId ? `API_Ops.php?action=sync&source_id=${sourceId}` : `API_Ops.php?action=sync`;
         const res = await fetch(url);
         const data = await res.json();
-        
+
         if (data.success) {
             showToast(`Success! Found ${data.saved_count} new records.`, 'success');
             fetchJobs(currentView, 1, currentSearchTerm); // Refresh view
@@ -172,7 +189,7 @@ function updateURL(view, page, search) {
 }
 
 // Handle browser back/forward buttons
-window.onpopstate = function() {
+window.onpopstate = function () {
     const params = new URLSearchParams(window.location.search);
     fetchJobs(params.get('view') || 'explore', parseInt(params.get('page')) || 1, params.get('search') || '');
 };
