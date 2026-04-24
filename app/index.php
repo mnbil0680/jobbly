@@ -75,7 +75,7 @@ $initialPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 
 <!-- Assignment Requirements: API_Ops.js and main.js -->
 <script src="assets/js/main.js"></script>
-<script src="API_Ops.js"></script>
+<script src="assets/js/API_Ops.js"></script>
 
 <script>
     // Initialize SPA State
