@@ -572,6 +572,7 @@ function mapDbJobToResponse($job) {
         'description' => (string)($job['description'] ?? ''),
         'salary' => $salary,
         'status' => (string)($job['status'] ?? ''),
+        'apply_url' => (string)($job['apply_url'] ?? ''),
         'created_at' => (string)($job['created_at'] ?? '')
     ];
 }

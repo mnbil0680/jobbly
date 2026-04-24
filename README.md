@@ -64,7 +64,9 @@ To run this project locally, we recommend using **XAMPP** (or WAMP/MAMP) to prov
 
 ## Installation and Setup
 
-### 1. Clone the Repository
+### Windows:
+
+#### 1. Clone the Repository
 Clone the repository into your XAMPP `htdocs` folder (e.g., `C:\xampp\htdocs\jobbly`).
 ```bash
 cd C:\xampp\htdocs
@@ -72,18 +74,47 @@ git clone <repository_url> jobbly
 cd jobbly
 ```
 
-### 2. Configure Database
+#### 2. Configure Database
 1. Open the XAMPP Control Panel and start **Apache** and **MySQL**.
 2. Go to `http://localhost/phpmyadmin/` in your browser.
 3. Create a new database named `jobbly`.
 4. Run the database setup or import your schema if required.
 
-### 3. Setup Configuration
+#### 3. Setup Configuration
 Copy the example configuration file and configure your database credentials and API keys:
 ```bash
 cp config/config.example.php config/config.php
 ```
 Edit `config/config.php` to set your MySQL username/password and any necessary API keys.
+
+
+### Linux and macOS:
+
+#### 1. Project Initialization
+Clone the repository and fix permissions so the Apache `daemon` can read your files:
+```bash
+cd /opt/lampp/htdocs
+git clone <repository_url> jobbly
+sudo chmod -R 755 jobbly
+cp jobbly/config/config.example.php jobbly/config/config.php
+```
+
+#### 2. Database & Schema Reset
+Initialize the database and import the schema directly from your terminal:
+```bash
+# Start XAMPP services
+sudo /opt/lampp/lampp start
+
+# Create Database and Import SQL
+/opt/lampp/bin/mysql -u root -e "DROP DATABASE IF EXISTS jobbly; CREATE DATABASE jobbly;"
+/opt/lampp/bin/mysql -u root jobbly < /opt/lampp/htdocs/jobbly/jobbly.sql
+```
+
+#### 3. Job Ingestion (CLI)
+Populate your database with thousands of jobs using the XAMPP PHP binary:
+```bash
+sudo /opt/lampp/bin/php /opt/lampp/htdocs/jobbly/src/ingest_jobs_cli.php
+```
 
 ## Running the Application
 

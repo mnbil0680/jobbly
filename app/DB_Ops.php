@@ -140,8 +140,8 @@ class JobsDatabase
 
         $stmt = $this->connection->prepare(
             "INSERT INTO jobs
-            (company_name, poster_id, category_id, title, description, location, job_type, salary_min, salary_max, currency, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            (company_name, poster_id, category_id, title, description, location, job_type, salary_min, salary_max, currency, status, apply_url)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
 
         if (!$stmt) {
@@ -149,9 +149,10 @@ class JobsDatabase
         }
 
         $poster_id = $data['poster_id'] ?? null;
+        $apply_url = $data['apply_url'] ?? '';
 
         $stmt->bind_param(
-            "ssissssddss",
+            "ssissssddsss",
             $data['company_name'],
             $poster_id,
             $data['category_id'],
@@ -162,7 +163,8 @@ class JobsDatabase
             $data['salary_min'],
             $data['salary_max'],
             $data['currency'],
-            $data['status']
+            $data['status'],
+            $apply_url
         );
 
         $status = 'active';
@@ -194,14 +196,15 @@ class JobsDatabase
 
         if (!$this->insertStmt) {
             $this->insertStmt = $this->connection->prepare(
-                "INSERT INTO jobs (company_name, poster_id, category_id, title, description, location, job_type, salary_min, salary_max, currency, status) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO jobs (company_name, poster_id, category_id, title, description, location, job_type, salary_min, salary_max, currency, status, apply_url) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             );
         }
 
         $status = 'open';
+        $apply_url = $jobData['apply_url'] ?? '';
         $this->insertStmt->bind_param(
-            "ssissssddss",
+            "ssissssddsss",
             $jobData['company_name'],
             $poster_id,
             $jobData['category_id'],
@@ -212,7 +215,8 @@ class JobsDatabase
             $jobData['salary_min'],
             $jobData['salary_max'],
             $jobData['currency'],
-            $status
+            $status,
+            $apply_url
         );
 
         if (!$this->insertStmt->execute()) {
@@ -240,7 +244,7 @@ class JobsDatabase
             $types = "";
 
             foreach ($batch as $job) {
-                $placeholders[] = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                $placeholders[] = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
                 // Ensure required fields
                 $company = $job['company_name'] ?? 'N/A';
@@ -254,6 +258,7 @@ class JobsDatabase
                 $salary_max = (float)($job['salary_max'] ?? 0);
                 $currency = $job['currency'] ?? 'USD';
                 $status = 'open';
+                $apply_url = $job['apply_url'] ?? '';
 
                 $values[] = $company;
                 $values[] = $poster_id;
@@ -266,12 +271,13 @@ class JobsDatabase
                 $values[] = $salary_max;
                 $values[] = $currency;
                 $values[] = $status;
+                $values[] = $apply_url;
 
-                $types .= "ssissssddss";
+                $types .= "ssissssddsss";
             }
 
             $sql = "INSERT IGNORE INTO jobs 
-                    (company_name, poster_id, category_id, title, description, location, job_type, salary_min, salary_max, currency, status) 
+                    (company_name, poster_id, category_id, title, description, location, job_type, salary_min, salary_max, currency, status, apply_url) 
                     VALUES " . implode(', ', $placeholders);
 
             $stmt = $this->connection->prepare($sql);
