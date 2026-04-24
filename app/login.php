@@ -36,8 +36,14 @@
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
+
+            // Client-side validation (Requirement: 3. AJAX & Server-Side Logic)
+            if (!email || !password) {
+                showToast('Email and password are required.', 'error');
+                return;
+            }
 
             try {
                 const res = await fetch('API_Ops.php', {

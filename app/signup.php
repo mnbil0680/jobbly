@@ -40,9 +40,23 @@
     <script>
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
+
+            // Client-side validation (Requirement: 3. AJAX & Server-Side Logic)
+            if (name.length < 3) {
+                showToast('Name must be at least 3 characters.', 'error');
+                return;
+            }
+            if (!email.includes('@')) {
+                showToast('Please enter a valid email.', 'error');
+                return;
+            }
+            if (password.length < 6) {
+                showToast('Password must be at least 6 characters.', 'error');
+                return;
+            }
 
             try {
                 const res = await fetch('API_Ops.php', {
