@@ -27,6 +27,9 @@ $userName = $_SESSION['user_name'] ?? '';
                     <a class="menu-link <?php echo basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active' : ''; ?>" href="profile.php">
                         Dashboard
                     </a>
+                    <a class="menu-link create-job-link <?php echo basename($_SERVER['PHP_SELF']) == 'create_job.php' ? 'active' : ''; ?>" href="create_job.php">
+                        <span class="material-symbols-outlined" style="font-size:16px;vertical-align:-3px;margin-right:4px;">add_circle</span>Create Job
+                    </a>
                 <?php endif; ?>
             </div>
         </div>
