@@ -60,7 +60,7 @@
                 }
 
                 if (data.success) {
-                    window.location.href = 'jobs.php';
+                    window.location.href = 'index.php';
                 } else {
                     showToast(data.message || 'Registration failed. Please try again.', 'error');
                 }
